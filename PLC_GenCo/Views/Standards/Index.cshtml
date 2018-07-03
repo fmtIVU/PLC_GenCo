@@ -1,0 +1,33 @@
+﻿@using PLC_GenCo.ViewModels
+
+@model List<PLC_GenCo.ViewModels.Standard>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Standards</h2>
+@if (!Model.Any())
+{
+    <p>We don't have any standard yet.</p>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Component</th>
+                <th>Connection</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var standard in Model)
+            {
+                <tr>
+                    <td>@Html.ActionLink(Enums.GetDisplayName(standard.StandardComponent), "Details", "Standards", new { id = standard.Id }, null)</td>
+                    <td>@standard.ConnectionType </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

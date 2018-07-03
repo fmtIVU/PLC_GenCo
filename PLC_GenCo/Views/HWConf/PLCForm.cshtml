@@ -1,0 +1,40 @@
+﻿@using PLC_GenCo.ViewModels
+
+
+@model PLC_GenCo.ViewModels.PLCFormViewModel
+@{
+    ViewBag.Title = "PLCForm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Module setup</h2>
+
+
+
+@using (Html.BeginForm("SavePLC", "HWConf"))
+{
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.PLC.Name)
+        @Html.TextBoxFor(m => m.PLC.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.PLC.Name)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.PLC.ProductType)
+        @Html.EnumDropDownListFor(m => m.PLC.ProductType, "Select Controller", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.PLC.ProductType)  
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.PLC.Description)
+        @Html.TextBoxFor(m => m.PLC.Description, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.PLC.Description)
+    </div>
+    @Html.HiddenFor(m => m.PLC.Id)
+    <button type="submit" class="btn btn-primary">Save</button>
+
+}
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryval")
+}

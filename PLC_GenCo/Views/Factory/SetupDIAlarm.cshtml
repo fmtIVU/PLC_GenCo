@@ -1,0 +1,38 @@
+﻿@model PLC_GenCo.ViewModels.Setups.DIAlarmSetupViewModel
+@{
+    ViewBag.Title = "SetupDIAlarm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>SetupDIAlarm</h2>
+<h3>@Model.Component.Name</h3>
+<h4>@Model.Component.Comment</h4>
+<h4>Location: @Model.Component.Location</h4>
+
+@using (Html.BeginForm("SaveDIAlarm", "Factory"))
+{
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.DIAlarmSetup.TimeDelay)
+        @Html.TextBoxFor(m => m.DIAlarmSetup.TimeDelay, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.DIAlarmSetup.TimeDelay)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.DIAlarmSetup.InputType)
+        @Html.EnumDropDownListFor(m => m.DIAlarmSetup.InputType, "Select input type", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.DIAlarmSetup.InputType)
+    </div>
+
+    @Html.HiddenFor(m => m.Component)
+    @Html.HiddenFor(m => m.DIAlarmSetup.Id)
+    @Html.HiddenFor(m => m.DIAlarmSetup.IdComponent)
+
+
+    <button type="submit" class="btn btn-primary">Save</button>
+
+}
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryval")
+}

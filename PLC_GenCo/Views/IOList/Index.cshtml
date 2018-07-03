@@ -1,0 +1,168 @@
+﻿@using PLC_GenCo.ViewModels
+
+@model PLC_GenCo.ViewModels.IOListViewModel
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (!Model.IOs.Any())
+{
+    <p>We don't have any I/Os yet.</p>
+}
+else
+{
+    <h3>I/O List</h3>
+    <button> @Html.ActionLink("Auto match", "MatchToStandards", "IOList", null) </button>
+    <table id="IOs" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Location</th>
+                <th>I/O Type</th>
+                <th>I/O Address</th>
+                <th>Comment</th>
+                <th>Parent</th>
+                <th>Standard</th>
+                <th>Match status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var io in Model.IOs)
+            {
+
+                String parentName;
+
+                var checkParent = Model.Components.FirstOrDefault(c => c.Id == io.Parent);
+                if (checkParent != null)
+                {
+                    parentName = checkParent.Name;
+                }
+                else
+                {
+                    parentName = "No parent";
+                }
+                <tr class="m">
+
+                    <td>@Html.ActionLink(io.Name, "IOForm", "IOList", new { id = io.Id }, null)</td>
+                    <td>@io.Location</td>
+                    <td>@io.ConnectionType.ToString()</td>
+                    <td>Module: @io.PLCAddress.Module.ToString() Channel: @io.PLCAddress.Channel.ToString()</td>
+                    <td>@io.Comment</td>
+                    <td>@parentName</td>
+                    <td>@Enums.GetDisplayName(io.Standard)</td>
+                    <td class="matching">@Enums.GetDisplayName(io.MatchStatus)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+<h3>Parent components</h3>
+@if (!Model.Components.Any(c => c.IsParent == true))
+{
+    <p>We don't have any parent components yet.</p>
+}
+else
+{
+    <table id="parents" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Standard</th>
+                <th>Location</th>
+                <th>I/O Type</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var component in Model.Components.Where(c => c.IsParent == true).ToList())
+            {
+                <tr>
+                    <td>@Html.ActionLink(component.Name, "Edit", "Factory", new { id = component.Id }, null)</td>
+                    <td class="matchingParent">@Enums.GetDisplayName(component.StandardComponent)</td>
+                    <td>@component.Location</td>
+                    <td>@component.ConnectionType</td>
+                    <td><button data-component-id="@component.Id" class="btn-link js-delete">Delete</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+@section scripts
+{
+
+    <script>
+        $(document).ready(function () {
+            $("#IOs").DataTable({
+                "dom": '<"top"f>rt<"bottom"><"clear">',
+                "scrollY": "500px",
+                "scrollCollapse": true,
+                "paging": false,
+
+            });
+            $(document).ready(function () {
+                $('#IOs td.matching').each(function () {
+                    switch ($(this).text()) {
+                        case ("No Match"):
+                            $(this).css('background-color', '#ffad99');
+                            break;
+                        case ("Check"):
+                            $(this).css('background-color', '#ffffcc');
+                            break;
+                        case ("Match"):
+                            $(this).css('background-color', '#ccffcc');
+                            break;
+                        default:
+                            $(this).css('background-color', '#ffad99');
+                            break;
+
+                    }
+                });
+            });
+        });
+
+
+        $(document).ready(function () {
+            $("#parents").DataTable({
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "paging": false,
+            });
+
+            $("#parents .js-delete").on("click", function () {
+                var button = $(this);
+
+                bootbox.confirm("Are you sure you want to delete this component?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "/api/components/" + button.attr("data-component-id"),
+                            method: "DELETE",
+                            success: function () {
+                                button.parents("tr").remove();
+                            }
+                        });
+                    }
+                });
+            });
+
+            $(document).ready(function () {
+                $('#parents td.matchingParent').each(function () {
+                    switch ($(this).text()) {
+                        case ("No Match"):
+                            $(this).css('background-color', '#ffad99');
+                            break;
+                        default:
+                            $(this).css('background-color', '#ccffcc');
+                            break;
+
+                    }
+                });
+            });
+        });
+
+    </script>
+}

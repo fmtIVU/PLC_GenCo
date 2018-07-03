@@ -1,0 +1,51 @@
+﻿@using PLC_GenCo.ViewModels
+
+@model PLC_GenCo.ViewModels.AddComponentFactoryViewModel
+@{
+    ViewBag.Title = "AddComponent";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Component setup</h2>
+
+
+
+@using (Html.BeginForm("Save", "Factory"))
+{
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Component.Name)
+        @Html.TextBoxFor(m => m.Component.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Component.Name)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Component.Comment)
+        @Html.TextBoxFor(m => m.Component.Comment, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Component.Comment)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Component.Location)
+        @Html.DropDownListFor(m => m.Component.Location, new SelectList(Model.ComponentLocations, "Name", "Name"), "Select Location", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Component.Location)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Component.StandardComponent)
+        @Html.EnumDropDownListFor(m => m.Component.StandardComponent, "Select standard", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Component.StandardComponent)
+    </div>
+    <div class=“checkbox”>
+        @Html.CheckBoxFor(m => m.Component.IsParent)	Is parent component?
+    </div>
+
+
+    @Html.HiddenFor(m => m.Component.Id)
+    @Html.HiddenFor(m => m.Component.ConnectionType)
+
+    <button type="submit" class="btn btn-primary">Save</button>
+
+}
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryval")
+}

@@ -1,0 +1,70 @@
+﻿@using PLC_GenCo.ViewModels
+@model PLC_GenCo.ViewModels.FactoryViewModel
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Component overview</h2>
+
+    <table id="components" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Name</th>
+                <th>Comment</th>
+                <th>Standard</th>
+                <th>Connection</th>
+                <th>DEL</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var component in Model.Components)
+            {
+                <tr class="min-row">
+                    <td class="min-row">@component.Location</td>
+                    <td class="min-row">@Html.ActionLink(component.Name, "Edit", "Factory", new { id = component.Id }, null)</td>
+                    <td class="min-row">@component.Comment</td>
+                    <td class="min-row">@Html.ActionLink(Enums.GetDisplayName(component.StandardComponent), "Setup", "Factory", new { id = component.Id }, null)</td>
+                    <td class="min-row">@component.ConnectionType </td>
+                    <td class="min-row">
+                        <button data-component-id="@component.Id" class="btn-link js-delete">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+<p>
+    <button style="float: left;"> @Html.ActionLink("Add", "AddComponent", "Factory", null) </button>
+    <button style="float: right;"> @Html.ActionLink("Download", "download", "Factory", null) </button>
+
+</p>
+    @section scripts
+{
+
+        <script>
+            $(document).ready(function () {
+                $("#components").DataTable({
+                    "dom": '<"top"f>rt<"bottom"><"clear">',
+                    "paging": false,
+                });
+
+                $("#components .js-delete").on("click", function () {
+                    var button = $(this);
+
+                    bootbox.confirm("Are you sure you want to delete this component?", function (result) {
+                        if (result) {
+                            $.ajax({
+                                url: "/api/components/" + button.attr("data-component-id"),
+                                method: "DELETE",
+                                success: function () {
+                                    button.parents("tr").remove();
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+        </script>
+    }

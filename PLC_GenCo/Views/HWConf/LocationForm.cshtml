@@ -1,0 +1,34 @@
+﻿@using PLC_GenCo.ViewModels
+
+@model PLC_GenCo.ViewModels.LocationFormViewModel
+@{
+    ViewBag.Title = "LocationForm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Location setup</h2>
+
+
+
+@using (Html.BeginForm("SaveLocation", "HWConf"))
+{
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Location.Name)
+        @Html.TextBoxFor(m => m.Location.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Location.Name)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Location.Prefix)
+        @Html.TextBoxFor(m => m.Location.Prefix, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Location.Prefix)
+    </div>
+    @Html.HiddenFor(m => m.Location.Id)
+    <button type="submit" class="btn btn-primary">Save</button>
+
+}
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryval")
+}

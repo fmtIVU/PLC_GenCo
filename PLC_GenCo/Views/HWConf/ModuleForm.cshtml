@@ -1,0 +1,37 @@
+﻿@using PLC_GenCo.ViewModels
+
+
+@model PLC_GenCo.ViewModels.ModuleFormViewModel
+@{
+    ViewBag.Title = "ModuleForm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Module setup</h2>
+
+
+
+@using (Html.BeginForm("SaveModule", "HWConf"))
+{
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Module.Name)
+        @Html.TextBoxFor(m => m.Module.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Module.Name)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Module.IOModulesType)
+        @Html.EnumDropDownListFor(m => m.Module.IOModulesType, "Select module", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Module.IOModulesType)
+        
+    </div>
+    @Html.HiddenFor(m => m.Module.Id)
+    @Html.HiddenFor(m => m.Module.Comments)
+    <button type="submit" class="btn btn-primary">Save</button>
+
+}
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryval")
+}

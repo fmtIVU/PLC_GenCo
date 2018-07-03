@@ -1,0 +1,121 @@
+﻿@model PLC_GenCo.ViewModels.Setups.AIAlarmSetupViewModel
+@{
+    ViewBag.Title = "SetupAIAlarm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Setup analog alarm</h2>
+<h3>@Model.Component.Name</h3>
+<h4>@Model.Component.Comment</h4>
+<h4>Location: @Model.Component.Location</h4>
+
+@using (Html.BeginForm("SaveAIAlarm", "Factory"))
+{
+
+    <div id="AIAlarmSetup">
+        <div id="AIAlarmSetup" style="display: inline-block; width:45% " align="left">
+            <h3>Scale setup</h3>
+            <div class="form-group">
+                @Html.LabelFor(m => m.AIAlarmSetup.AICType)
+                @Html.EnumDropDownListFor(m => m.AIAlarmSetup.AICType, "Select", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.AIAlarmSetup.AICType)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.AIAlarmSetup.ScaleMax)
+                @Html.TextBoxFor(m => m.AIAlarmSetup.ScaleMax, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(m => m.AIAlarmSetup.ScaleMax)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.AIAlarmSetup.ScaleMin)
+                @Html.TextBoxFor(m => m.AIAlarmSetup.ScaleMin, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(m => m.AIAlarmSetup.ScaleMin)
+            </div>
+
+        </div>
+
+        <div id="AIAlarmSetup" style="display: inline-block; width:45% ">
+            <h3>Alarm setup</h3>
+            <div class="form-group">
+                @Html.LabelFor(m => m.AIAlarmSetup.TimeDelay)
+                @Html.TextBoxFor(m => m.AIAlarmSetup.TimeDelay, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.AIAlarmSetup.TimeDelay)
+            </div>
+            <div class=“checkbox” id="UseAlarmHigh">
+                @Html.CheckBoxFor(m => m.AIAlarmSetup.UseAlarmHigh)     Use alarm high?
+            </div>
+            <div class="form-group" id="AlarmHigh">
+                @Html.LabelFor(m => m.AIAlarmSetup.AlarmHigh)
+                @Html.TextBoxFor(m => m.AIAlarmSetup.AlarmHigh, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(m => m.AIAlarmSetup.AlarmHigh)
+            </div>
+            <div class=“checkbox” id="UseAlarmEqual">
+                @Html.CheckBoxFor(m => m.AIAlarmSetup.UseAlarmEqual)    Use alarm high?
+            </div>
+            <div class="form-group" id="AlarmEqual">
+                @Html.LabelFor(m => m.AIAlarmSetup.AlarmEqual)
+                @Html.TextBoxFor(m => m.AIAlarmSetup.AlarmEqual, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(m => m.AIAlarmSetup.AlarmEqual)
+            </div>
+            <div class=“checkbox” id="UseAlarmLow">
+                @Html.CheckBoxFor(m => m.AIAlarmSetup.UseAlarmLow)    Use alarm low?
+            </div>
+
+            <div class="form-group" id="AlarmLow">
+                @Html.LabelFor(m => m.AIAlarmSetup.AlarmLow)
+                @Html.TextBoxFor(m => m.AIAlarmSetup.AlarmLow, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(m => m.AIAlarmSetup.AlarmLow)
+            </div>
+            
+            
+
+        </div>
+    </div>
+
+
+
+
+    @Html.HiddenFor(m => m.Component)
+    @Html.HiddenFor(m => m.AIAlarmSetup.Id)
+    @Html.HiddenFor(m => m.AIAlarmSetup.IdComponent)
+    @Html.HiddenFor(m => m.AIAlarmSetup.IdIO)
+
+    <div>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </div>
+
+
+}
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            $("#UseAlarmLow").change(function () {
+                if (!this.checked)
+                    $("#AlarmLow").fadeIn("slow");
+                else
+                    $("#AlarmLow").fadeOut("slow");
+            });
+        });
+
+        $(document).ready(function () {
+            $("#UseAlarmEqual").change(function () {
+                if (!this.checked)
+                    $("#AlarmEqual").fadeIn("slow");
+                else
+                    $("#AlarmEqual").fadeOut("slow");
+            });
+        });
+
+        $(document).ready(function () {
+            $("#UseAlarmHigh").change(function () {
+                if (!this.checked)
+                    $("#AlarmHigh").fadeIn("slow");
+                else
+                    $("#AlarmHigh").fadeOut("slow");
+            });
+        });
+            
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+}

@@ -1,0 +1,367 @@
+﻿@model PLC_GenCo.ViewModels.Setups.MDirSetupViewModel
+@{
+    ViewBag.Title = "SetupMDir";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Setup motor single direction</h2>
+<h3>@Model.Component.Name - @Model.Component.Location - @Model.Component.Comment</h3>
+@{ //Filter for dropdowns
+    var DIChilds = Model.Childs.Where(c => (c.ConnectionType == PLC_GenCo.ViewModels.Enums.ConnectionType.DI ||
+                                            c.ConnectionType == PLC_GenCo.ViewModels.Enums.ConnectionType.ETH_DI));
+    var DOChilds = Model.Childs.Where(c => (c.ConnectionType == PLC_GenCo.ViewModels.Enums.ConnectionType.DO ||
+                                            c.ConnectionType == PLC_GenCo.ViewModels.Enums.ConnectionType.ETH_DO));
+    var AIChilds = Model.Childs.Where(c => (c.ConnectionType == PLC_GenCo.ViewModels.Enums.ConnectionType.AI ||
+                                            c.ConnectionType == PLC_GenCo.ViewModels.Enums.ConnectionType.ETH_AI));
+}
+@using (Html.BeginForm("SaveMDir", "Factory"))
+{
+
+    <div class="topalling">
+        <div style="display: inline-block; width:45% " align="left" class="topalling">
+            <h3>I/O setup</h3>
+            
+            <div class="form-group">
+                @Html.LabelFor(m => m.MDirSetup.OUTStartSignal)
+                @Html.DropDownListFor(m => m.MDirSetup.OUTStartSignal, new SelectList(DOChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.MDirSetup.OUTStartSignal)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.MDirSetup.INRunningFB)
+                @Html.DropDownListFor(m => m.MDirSetup.INRunningFB, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.MDirSetup.INRunningFB)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.MDirSetup.OUTResetSignal)
+                @Html.DropDownListFor(m => m.MDirSetup.OUTResetSignal, new SelectList(DOChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.MDirSetup.OUTResetSignal)
+            </div>
+
+        </div>
+
+        <div style="display: inline-block; width:45% " align="right" class="topalling">
+            <h3>Alarm setup</h3>
+            <table id="AlarmSetup" class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>External fault nr.</th>
+                        <th>IO</th>
+                        <th>NO/NC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Ext. Fault:01</td>
+                        <td>@Html.DropDownListFor(m => m.MDirSetup.INExtFault01, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                        <td>@Html.EnumDropDownListFor(m => m.MDirSetup.InputType01, "Select input type", new { @class = "form-control" })
+                    </tr>
+                    <tr>
+                        <td>Ext. Fault:02</td>
+                        <td>@Html.DropDownListFor(m => m.MDirSetup.INExtFault02, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                        <td>@Html.EnumDropDownListFor(m => m.MDirSetup.InputType02, "Select input type", new { @class = "form-control" })
+                    </tr>
+                    <tr>
+                        <td>Ext. Fault:03</td>
+                        <td>@Html.DropDownListFor(m => m.MDirSetup.INExtFault03, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                        <td>@Html.EnumDropDownListFor(m => m.MDirSetup.InputType03, "Select input type", new { @class = "form-control" })
+                    </tr>
+                    <tr>
+                        <td>Ext. Fault:04</td>
+                        <td>@Html.DropDownListFor(m => m.MDirSetup.INExtFault04, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                        <td>@Html.EnumDropDownListFor(m => m.MDirSetup.InputType04, "Select input type", new { @class = "form-control" })
+                    </tr>
+                    <tr>
+                        <td>Ext. Fault:05</td>
+                        <td>@Html.DropDownListFor(m => m.MDirSetup.INExtFault05, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                        <td>@Html.EnumDropDownListFor(m => m.MDirSetup.InputType05, "Select input type", new { @class = "form-control" })
+                    </tr>
+                    <tr>
+                        <td>Ext. Fault:06</td>
+                        <td>@Html.DropDownListFor(m => m.MDirSetup.INExtFault06, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                        <td>@Html.EnumDropDownListFor(m => m.MDirSetup.InputType06, "Select input type", new { @class = "form-control" })
+                    </tr>
+                    <tr>
+                        <td>Ext. Fault:07</td>
+                        <td>@Html.DropDownListFor(m => m.MDirSetup.INExtFault07, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                        <td>@Html.EnumDropDownListFor(m => m.MDirSetup.InputType07, "Select input type", new { @class = "form-control" })
+                    </tr>
+                    <tr>
+                        <td>Ext. Fault:08</td>
+                        <td>@Html.DropDownListFor(m => m.MDirSetup.INExtFault08, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                        <td>@Html.EnumDropDownListFor(m => m.MDirSetup.InputType08, "Select input type", new { @class = "form-control" })
+                    </tr>
+                </tbody>
+            </table>
+
+
+
+        </div>
+    </div>
+    <div style="width:100% " align="left" class="topalling">
+        <h3>Measurement setup</h3>
+        <table id="MeasurementSetup" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Nr.</th>
+                    <th>Input channel</th>
+                    <th>Type</th>
+                    <th>Scale Max</th>
+                    <th>Scale Min</th>
+                    <th>Alarm High</th>
+                    <th>Alarm Equal</th>
+                    <th>Alarm Low</th>
+                    <th>Delay</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>01</td>
+                    <td class="botalign" style="width: 200px;">@Html.DropDownListFor(m => m.MDirSetup.INMeasurement01.IdIO, new SelectList(AIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                    <td class="botalign" style="width: 200px;">@Html.EnumDropDownListFor(m => m.MDirSetup.INMeasurement01.AICType, "Select input type", new { @class = "form-control" })</td>
+
+                    <td class="botalign">
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement01.ScaleMax, new { @class = "form-control" })
+                    </td>
+                    <td class="botalign">
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement01.ScaleMin, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmHigh">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement01.UseAlarmHigh)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement01.AlarmHigh, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmEqual">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement01.UseAlarmEqual)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement01.AlarmEqual, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmLow">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement01.UseAlarmLow)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement01.AlarmLow, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div>
+                            [s]
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement01.TimeDelay, new { @class = "form-control" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>02</td>
+                    <td class="botalign">@Html.DropDownListFor(m => m.MDirSetup.INMeasurement02.IdIO, new SelectList(AIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                    <td class="botalign">@Html.EnumDropDownListFor(m => m.MDirSetup.INMeasurement02.AICType, "Select input type", new { @class = "form-control" })
+
+                    <td class="botalign">
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement02.ScaleMax, new { @class = "form-control" })
+                    </td>
+                    <td class="botalign">
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement02.ScaleMin, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmHigh">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement02.UseAlarmHigh)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement02.AlarmHigh, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmEqual">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement02.UseAlarmEqual)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement02.AlarmEqual, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmLow">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement02.UseAlarmLow)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement02.AlarmLow, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div>
+                            [s]
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement02.TimeDelay, new { @class = "form-control" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>03</td>
+                    <td class="botalign">@Html.DropDownListFor(m => m.MDirSetup.INMeasurement03.IdIO, new SelectList(AIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                    <td class="botalign">@Html.EnumDropDownListFor(m => m.MDirSetup.INMeasurement03.AICType, "Select input type", new { @class = "form-control" })
+
+                    <td class="botalign">
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement03.ScaleMax, new { @class = "form-control" })
+                    </td>
+                    <td class="botalign">
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement03.ScaleMin, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmHigh">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement03.UseAlarmHigh)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement03.AlarmHigh, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmEqual">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement03.UseAlarmEqual)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement03.AlarmEqual, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmLow">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement03.UseAlarmLow)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement03.AlarmLow, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div>
+                            [s]
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement03.TimeDelay, new { @class = "form-control" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>04</td>
+                    <td class="botalign">@Html.DropDownListFor(m => m.MDirSetup.INMeasurement04.IdIO, new SelectList(AIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                    <td class="botalign">@Html.EnumDropDownListFor(m => m.MDirSetup.INMeasurement04.AICType, "Select input type", new { @class = "form-control" })
+
+                    <td class="botalign">
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement04.ScaleMax, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement04.ScaleMin, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmHigh">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement04.UseAlarmHigh)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement04.AlarmHigh, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmEqual">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement04.UseAlarmEqual)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement04.AlarmEqual, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmLow">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement04.UseAlarmLow)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement04.AlarmLow, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div>
+                            [s]
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement04.TimeDelay, new { @class = "form-control" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>05</td>
+                    <td class="botalign">@Html.DropDownListFor(m => m.MDirSetup.INMeasurement05.IdIO, new SelectList(AIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                    <td class="botalign">@Html.EnumDropDownListFor(m => m.MDirSetup.INMeasurement05.AICType, "Select input type", new { @class = "form-control" })
+
+                    <td class="botalign">
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement05.ScaleMax, new { @class = "form-control" })
+                    </td>
+                    <td class="botalign">
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement05.ScaleMin, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmHigh">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement05.UseAlarmHigh)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement05.AlarmHigh, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmEqual">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement05.UseAlarmEqual)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement05.AlarmEqual, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmLow">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement05.UseAlarmLow)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement05.AlarmLow, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div>
+                            [s]
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement05.TimeDelay, new { @class = "form-control" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>06</td>
+                    <td class="botalign">@Html.DropDownListFor(m => m.MDirSetup.INMeasurement06.IdIO, new SelectList(AIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })</td>
+                    <td class="botalign">@Html.EnumDropDownListFor(m => m.MDirSetup.INMeasurement06.AICType, "Select input type", new { @class = "form-control" })
+
+                    <td class="botalign">
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement06.ScaleMax, new { @class = "form-control" })
+                    </td>
+                    <td class="botalign">
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement06.ScaleMin, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmHigh">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement06.UseAlarmHigh)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement06.AlarmHigh, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmEqual">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement06.UseAlarmEqual)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement06.AlarmEqual, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class=“checkbox” id="UseAlarmLow">
+                            @Html.CheckBoxFor(m => m.MDirSetup.INMeasurement06.UseAlarmLow)     Use?
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement06.AlarmLow, new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div>
+                            [s]
+                        </div>
+                        @Html.TextBoxFor(m => m.MDirSetup.INMeasurement06.TimeDelay, new { @class = "form-control" })
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+
+
+
+    </div>
+
+
+
+    @Html.HiddenFor(m => m.Component)
+                @Html.HiddenFor(m => m.MDirSetup.Id)
+                @Html.HiddenFor(m => m.MDirSetup.IdComponent)
+
+                <div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+
+
+                }
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            $("#AlarmSetup").DataTable({
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "paging": false,
+            });
+        });
+
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+}
