@@ -32,6 +32,10 @@ namespace PLC_GenCo.ViewModels
         public DbSet<DIPulseSetup> DIpulses { get; set; }
         public DbSet<AIAlarmSetup> AIAlarms { get; set; }
         public DbSet<MDirSetup> MDirs { get; set; }
+        public DbSet<MotFrqSetup> MotFrqs { get; set; }
+        public DbSet<MRevSetup> MRevs { get; set; }
+        public DbSet<StdVlvSetup> StdVlvs { get; set; }
+        public DbSet<StandardGroup> StandardGroups { get; set; }
 
 
 

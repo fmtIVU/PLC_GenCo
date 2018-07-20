@@ -10,12 +10,14 @@ namespace PLC_GenCo.Models
     public class IO
     {
         public int Id { get; set; }
+        public int? ComponentId { get; set; }
+        public string ParentName { get; set; }
 
         public string Location { get; set; }
 
         public ConnectionType ConnectionType { get; set; }
 
-        public PLCAddress PLCAddress { get; set; }
+        public IOAddress IOAddress { get; set; }
 
         [Required]
         [StringLength(255)]
@@ -25,8 +27,6 @@ namespace PLC_GenCo.Models
         public string Comment { get; set; }
 
         //Matchup parameters
-        public StandardComponent Standard { get; set; }
-        public int? Parent { get; set; }
         public MatchStatus MatchStatus { get; set; }
 
 

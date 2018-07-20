@@ -1,5 +1,6 @@
 ﻿using PLC_GenCo.Models;
 using System;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace PLC_GenCo.Generator
@@ -41,7 +42,24 @@ namespace PLC_GenCo.Generator
                 
             }
 
-           
+            
+            foreach (var motFrqSetup in _modulesInfo.MotFrqSetups)
+            {
+                //Find component which owns setup
+                var setupOwner = _modulesInfo.Components.Single(c => c.Id == motFrqSetup.IdComponent);
+
+                //Upload module setupfile
+                var uri = new System.Uri(@"C:\Users\Ivan\Desktop\OP generator PLC koda\StandardTemplate\Modules\" + motFrqSetup.FrqType.ToString() + ".xml");
+
+                var moduleFile = XElement.Load(uri.ToString());
+
+                //Replace name and IP address
+                moduleFile.Attribute("Name").Value = setupOwner.Name;
+                moduleFile.Element("Ports").Element("Port").Attribute("Address").Value = motFrqSetup.IPAddress;
+
+                //Add module
+                modules.Add(moduleFile);
+            }
             
                 
                 
@@ -113,14 +131,14 @@ namespace PLC_GenCo.Generator
                 embDiscIODIComments.Add(
                     new XElement("Comment",
                         new XAttribute("Operand", ".DATA."+ i.ToString()),
-                        "<![CDATA[" + commentsDI[i] + "]]>"
+                        commentsDI[i]
                         )
                 );
 
                 embDiscIODOComments.Add(
                     new XElement("Comment",
                         new XAttribute("Operand", ".DATA." + i.ToString()),
-                        "<![CDATA[" + commentsDO[i] + "]]>"
+                        commentsDO[i]
                         )
                 );
 
@@ -436,12 +454,6 @@ namespace PLC_GenCo.Generator
                                     new XElement("Structure",
                                         new XAttribute("DataType", "AB:Embedded_DiscreteIO:O:0"),
                                         new XElement("DataValueMember",
-                                            new XAttribute("Name", "Fault"),
-                                            new XAttribute("DataType", "DINT"),
-                                            new XAttribute("Radix", "Binary"),
-                                            new XAttribute("Value", "2#0000_0000_0000_0000_0000_0000_0000_0000")
-                                        ),
-                                        new XElement("DataValueMember",
                                             new XAttribute("Name", "Data"),
                                             new XAttribute("DataType", "INT"),
                                             new XAttribute("Radix", "Binary"),
@@ -477,25 +489,25 @@ namespace PLC_GenCo.Generator
                     throw new Exception("Generate modules: Embedded modules not filtered");
                    
                 case ViewModels.Enums.IOModulesType.DIx4:
-                    module = GetDIx4(portAddress);
+                    module = GetDIx4(portAddress, IOmodule.Name);
                     break;
                 case ViewModels.Enums.IOModulesType.DIx8:
-                    module = GetDIx8(portAddress);
+                    module = GetDIx8(portAddress, IOmodule.Name);
                     break;
                 case ViewModels.Enums.IOModulesType.DOx4:
-                    module = GetDOx4(portAddress);
+                    module = GetDOx4(portAddress, IOmodule.Name);
                     break;
                 case ViewModels.Enums.IOModulesType.DOx8:
-                    module = GetDOx8(portAddress);
+                    module = GetDOx8(portAddress, IOmodule.Name);
                     break;
                 case ViewModels.Enums.IOModulesType.AIx4:
-                    module = GetAIx4(portAddress);
+                    module = GetAIx4(portAddress, IOmodule.Name);
                     break;
                 case ViewModels.Enums.IOModulesType.AIx8:
-                    module = GetAIx8(portAddress);
+                    module = GetAIx8(portAddress, IOmodule.Name);
                     break;
                 case ViewModels.Enums.IOModulesType.AOx4:
-                    module = GetAOx4(portAddress);
+                    module = GetAOx4(portAddress, IOmodule.Name);
                     break;
                 default:
                     throw new Exception("Generate modules: Unknown module - update switch-case");
@@ -509,11 +521,11 @@ namespace PLC_GenCo.Generator
             throw new NotImplementedException();
         }
 
-        private XElement GetAOx4(int portAddress)
+        private XElement GetAOx4(int portAddress, string name)
         {
             var getAox4Module =
                 new XElement("Module",
-                    new XAttribute("Name", "AOx4"),
+                    new XAttribute("Name", name),
                     new XAttribute("CatalogNumber", "1734-OE4C/C"),
                     new XAttribute("Vendor", "1"),
                     new XAttribute("ProductType", "115"),
@@ -564,13 +576,13 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch0LowEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3227")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch0HighEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16383")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch0LowLimit"),
@@ -612,7 +624,7 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch0AlarmDisable"),
                                         new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "1")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1FaultValue"),
@@ -630,13 +642,13 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch1LowEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3227")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1HighEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16383")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1LowLimit"),
@@ -678,7 +690,7 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch1AlarmDisable"),
                                         new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "1")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2FaultValue"),
@@ -696,13 +708,13 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch2LowEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3227")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2HighEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16383")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2LowLimit"),
@@ -744,7 +756,7 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch2AlarmDisable"),
                                         new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "1")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3FaultValue"),
@@ -762,13 +774,13 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch3LowEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3227")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3HighEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16383")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3LowLimit"),
@@ -810,7 +822,7 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch3AlarmDisable"),
                                         new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "1")
                                     )
                                 )
                             )
@@ -995,11 +1007,11 @@ namespace PLC_GenCo.Generator
             return getAox4Module;
         }
 
-        private XElement GetAIx8(int portAddress)
+        private XElement GetAIx8(int portAddress, string name)
         {
             var getAix8Module =
             new XElement("Module",
-                new XAttribute("Name", "AIx8"),
+                new XAttribute("Name", name),
                 new XAttribute("CatalogNumber", "1734-IE8C/C"),
                 new XAttribute("Vendor", "1"),
                 new XAttribute("ProductType", "115"),
@@ -1038,13 +1050,13 @@ namespace PLC_GenCo.Generator
                                     new XAttribute("Name", "Ch0LowEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3227")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch0HighEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16383")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch0DigitalFilter"),
@@ -1056,55 +1068,55 @@ namespace PLC_GenCo.Generator
                                     new XAttribute("Name", "Ch0LAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3113")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch0HAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16547")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch0LLAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "2867")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch0HHAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16793")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch0RangeType"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "3")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch0LimitAlarmLatch"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "0")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch0AlarmDisable"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "1")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch1LowEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3227")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch1HighEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16383")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch1DigitalFilter"),
@@ -1116,55 +1128,55 @@ namespace PLC_GenCo.Generator
                                     new XAttribute("Name", "Ch1LAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3113")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch1HAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16547")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch1LLAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "2867")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch1HHAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16793")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch1RangeType"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "3")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch1LimitAlarmLatch"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "0")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch1AlarmDisable"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "1")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch2LowEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3227")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch2HighEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16383")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch2DigitalFilter"),
@@ -1176,55 +1188,55 @@ namespace PLC_GenCo.Generator
                                     new XAttribute("Name", "Ch2LAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3113")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch2HAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16547")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch2LLAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "2867")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch2HHAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16793")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch2RangeType"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "3")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch2LimitAlarmLatch"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "0")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch2AlarmDisable"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "1")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch3LowEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3227")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch3HighEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16383")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch3DigitalFilter"),
@@ -1236,55 +1248,55 @@ namespace PLC_GenCo.Generator
                                     new XAttribute("Name", "Ch3LAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3113")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch3HAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16547")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch3LLAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "2867")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch3HHAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16793")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch3RangeType"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "3")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch3LimitAlarmLatch"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "0")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch3AlarmDisable"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "1")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch4LowEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3227")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch4HighEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16383")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch4DigitalFilter"),
@@ -1296,55 +1308,55 @@ namespace PLC_GenCo.Generator
                                     new XAttribute("Name", "Ch4LAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3113")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch4HAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16547")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch4LLAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "2867")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch4HHAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16793")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch4RangeType"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "3")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch4LimitAlarmLatch"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "0")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch4AlarmDisable"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "1")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch5LowEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3227")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch5HighEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16383")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch5DigitalFilter"),
@@ -1356,55 +1368,55 @@ namespace PLC_GenCo.Generator
                                     new XAttribute("Name", "Ch5LAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3113")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch5HAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16547")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch5LLAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "2867")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch5HHAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16793")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch5RangeType"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "3")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch5LimitAlarmLatch"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "0")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch5AlarmDisable"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "1")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch6LowEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3227")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch6HighEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16383")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch6DigitalFilter"),
@@ -1416,55 +1428,55 @@ namespace PLC_GenCo.Generator
                                     new XAttribute("Name", "Ch6LAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3113")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch6HAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16547")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch6LLAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "2867")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch6HHAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16793")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch6RangeType"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "3")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch6LimitAlarmLatch"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "0")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch6AlarmDisable"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "1")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch7LowEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3227")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch7HighEngineering"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16383")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch7DigitalFilter"),
@@ -1476,44 +1488,55 @@ namespace PLC_GenCo.Generator
                                     new XAttribute("Name", "Ch7LAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "3113")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch7HAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16547")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch7LLAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "2867")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch7HHAlarmLimit"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "10000")
+                                    new XAttribute("Value", "16793")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch7RangeType"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "3")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch7LimitAlarmLatch"),
-                                    new XAttribute("DataType", "INT"),
+                                    new XAttribute("DataType", "SINT"),
                                     new XAttribute("Radix", "Decimal"),
                                     new XAttribute("Value", "0")
                                 ),
                                 new XElement("DataValueMember",
                                     new XAttribute("Name", "Ch7AlarmDisable"),
+                                    new XAttribute("DataType", "SINT"),
+                                    new XAttribute("Radix", "Decimal"),
+                                    new XAttribute("Value", "1")
+                                ), new XElement("DataValueMember",
+                                    new XAttribute("Name", "NotchFilter"),
+                                    new XAttribute("DataType", "SINT"),
+                                    new XAttribute("Radix", "Decimal"),
+                                    new XAttribute("Value", "1")
+                                ), new XElement("DataValueMember",
+                                    new XAttribute("Name", "RealTimeSample"),
                                     new XAttribute("DataType", "INT"),
                                     new XAttribute("Radix", "Decimal"),
-                                    new XAttribute("Value", "0")
+                                    new XAttribute("Value", "100")
                                 )
+
                     )
                 )
             ),
@@ -1971,11 +1994,11 @@ namespace PLC_GenCo.Generator
             return getAix8Module;
         }
 
-        private XElement GetAIx4(int portAddress)
+        private XElement GetAIx4(int portAddress, string name)
         {
             var getAix4Module =
                 new XElement("Module",
-                    new XAttribute("Name", "AIx4"),
+                    new XAttribute("Name", name),
                     new XAttribute("CatalogNumber", "1734-IE4C/C"),
                     new XAttribute("Vendor", "1"),
                     new XAttribute("ProductType", "115"),
@@ -2014,13 +2037,13 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch0LowEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3227")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch0HighEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16383")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch0DigitalFilter"),
@@ -2032,55 +2055,55 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch0LAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3113")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch0HAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16547")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch0LLAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "2867")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch0HHAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16793")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch0RangeType"),
-                                        new XAttribute("DataType", "INT"),
+                                        new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "3")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch0LimitAlarmLatch"),
-                                        new XAttribute("DataType", "INT"),
+                                        new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "0")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch0AlarmDisable"),
-                                        new XAttribute("DataType", "INT"),
+                                        new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "1")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1LowEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3227")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1HighEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16383")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1DigitalFilter"),
@@ -2092,55 +2115,55 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch1LAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3113")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1HAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16547")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1LLAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "2867")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1HHAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16793")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1RangeType"),
-                                        new XAttribute("DataType", "INT"),
+                                        new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "3")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1LimitAlarmLatch"),
-                                        new XAttribute("DataType", "INT"),
+                                        new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "0")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch1AlarmDisable"),
-                                        new XAttribute("DataType", "INT"),
+                                        new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "1")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2LowEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3227")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2HighEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16383")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2DigitalFilter"),
@@ -2152,55 +2175,55 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch2LAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3113")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2HAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16547")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2LLAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "2867")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2HHAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16793")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2RangeType"),
-                                        new XAttribute("DataType", "INT"),
+                                        new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "3")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2LimitAlarmLatch"),
-                                        new XAttribute("DataType", "INT"),
+                                        new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "0")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch2AlarmDisable"),
-                                        new XAttribute("DataType", "INT"),
+                                        new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "1")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3LowEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3227")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3HighEngineering"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16383")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3DigitalFilter"),
@@ -2212,44 +2235,56 @@ namespace PLC_GenCo.Generator
                                         new XAttribute("Name", "Ch3LAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "3113")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3HAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16547")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3LLAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
+                                        new XAttribute("Value", "2867")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3HHAlarmLimit"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "10000")
+                                        new XAttribute("Value", "16793")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3RangeType"),
-                                        new XAttribute("DataType", "INT"),
+                                        new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "3")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3LimitAlarmLatch"),
-                                        new XAttribute("DataType", "INT"),
+                                        new XAttribute("DataType", "SINT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "0")
                                     ),
                                     new XElement("DataValueMember",
                                         new XAttribute("Name", "Ch3AlarmDisable"),
+                                        new XAttribute("DataType", "SINT"),
+                                        new XAttribute("Radix", "Decimal"),
+                                        new XAttribute("Value", "1")
+                                    ),
+                                    new XElement("DataValueMember",
+                                        new XAttribute("Name", "NotchFilter"),
+                                        new XAttribute("DataType", "SINT"),
+                                        new XAttribute("Radix", "Decimal"),
+                                        new XAttribute("Value", "1")
+                                    ), 
+                                    new XElement("DataValueMember",
+                                        new XAttribute("Name", "RealTimeSample"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
-                                        new XAttribute("Value", "0")
-                                    )
+                                        new XAttribute("Value", "100")
+                                )
                                 )
                             )
                         ),
@@ -2499,21 +2534,21 @@ namespace PLC_GenCo.Generator
             return getAix4Module;
         }
 
-        private XElement GetDOx8(int portAddress)
+        private XElement GetDOx8(int portAddress, string name)
         {
             throw new NotImplementedException();
         }
 
-        private XElement GetDOx4(int portAddress)
+        private XElement GetDOx4(int portAddress, string name)
         {
             throw new NotImplementedException();
         }
 
-        private XElement GetDIx4(int portAddress)
+        private XElement GetDIx4(int portAddress, string name)
         {
             var getDix4Module =
                 new XElement("Module",
-                    new XAttribute("Name", "DIx4"),
+                    new XAttribute("Name", name),
                     new XAttribute("CatalogNumber", "1734-IB4/C"),
                     new XAttribute("Vendor", "1"),
                     new XAttribute("ProductType", "7"),
@@ -2549,49 +2584,49 @@ namespace PLC_GenCo.Generator
                                 new XElement("Structure",
                                     new XAttribute("DataType", "AB:1734_DI4:C:0"),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt00FilterOffOn"),
+                                        new XAttribute("Name", "Pt0FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt00FilterOnOff"),
+                                        new XAttribute("Name", "Pt0FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt01FilterOffOn"),
+                                        new XAttribute("Name", "Pt1FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt01FilterOnOff"),
+                                        new XAttribute("Name", "Pt1FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt02FilterOffOn"),
+                                        new XAttribute("Name", "Pt2FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt02FilterOnOff"),
+                                        new XAttribute("Name", "Pt2FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt03FilterOffOn"),
+                                        new XAttribute("Name", "Pt3FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt03FilterOnOff"),
+                                        new XAttribute("Name", "Pt3FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
@@ -2643,11 +2678,11 @@ namespace PLC_GenCo.Generator
             return getDix4Module;
         }
 
-        private XElement GetDIx8(int portAddress)
+        private XElement GetDIx8(int portAddress, string name)
         {
             var getDix8Module =
                 new XElement("Module",
-                    new XAttribute("Name", "DIx8"),
+                    new XAttribute("Name", name),
                     new XAttribute("CatalogNumber", "1734-IB8/C"),
                     new XAttribute("Vendor", "1"),
                     new XAttribute("ProductType", "7"),
@@ -2683,97 +2718,97 @@ namespace PLC_GenCo.Generator
                                 new XElement("Structure",
                                     new XAttribute("DataType", "AB:1734_DI8:C:0"),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt00FilterOffOn"),
+                                        new XAttribute("Name", "Pt0FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt00FilterOnOff"),
+                                        new XAttribute("Name", "Pt0FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt01FilterOffOn"),
+                                        new XAttribute("Name", "Pt1FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt01FilterOnOff"),
+                                        new XAttribute("Name", "Pt1FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt02FilterOffOn"),
+                                        new XAttribute("Name", "Pt2FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt02FilterOnOff"),
+                                        new XAttribute("Name", "Pt2FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt03FilterOffOn"),
+                                        new XAttribute("Name", "Pt3FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt03FilterOnOff"),
+                                        new XAttribute("Name", "Pt3FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt04FilterOffOn"),
+                                        new XAttribute("Name", "Pt4FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt04FilterOnOff"),
+                                        new XAttribute("Name", "Pt4FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt05FilterOffOn"),
+                                        new XAttribute("Name", "Pt5FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt05FilterOnOff"),
+                                        new XAttribute("Name", "Pt5FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt06FilterOffOn"),
+                                        new XAttribute("Name", "Pt6FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt06FilterOnOff"),
+                                        new XAttribute("Name", "Pt6FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt07FilterOffOn"),
+                                        new XAttribute("Name", "Pt7FilterOffOn"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")
                                     ),
                                     new XElement("DataValueMember",
-                                        new XAttribute("Name", "Pt07FilterOnOff"),
+                                        new XAttribute("Name", "Pt7FilterOnOff"),
                                         new XAttribute("DataType", "INT"),
                                         new XAttribute("Radix", "Decimal"),
                                         new XAttribute("Value", "1000")

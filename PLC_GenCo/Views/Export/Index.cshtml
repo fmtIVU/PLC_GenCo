@@ -1,0 +1,223 @@
+﻿@model PLC_GenCo.ViewModels.ExportViewModel
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Export overview</h2>
+
+<div id="ProjectBox">
+    <h3>Project</h3>
+    @{
+        if (Model.Tasks == null)
+        {
+            <p>Generate project first!</p>
+        }
+        else
+        {
+            <table id="project" class="table table-bordered table-hover" align="left" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Program</th>
+                        <th>Routine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var task in Model.Tasks)
+                    {
+                        <tr>
+                            <td class="min-row"><b>@task.Name</b> - @task.Type - @task.Description</td>
+                            <td class="min-row"></td>
+                            <td class="min-row"></td>
+                        </tr>
+                        foreach (var program in task.Programs)
+                        {
+                            <tr>
+                                <td class="min-row"></td>
+                                <td class="min-row"><b>@Html.ActionLink(program.Name, "ExportProgram", "Export", new { name = program.Name }, null)</b> - @program.Description</td>
+                                <td class="min-row"></td>
+                            </tr>
+                            foreach (var routine in program.Routines)
+                            {
+                                <tr>
+                                    <td class="min-row"></td>
+                                    <td class="min-row"></td>
+                                    @{if (routine.Name == "A00_MainRoutine")
+                                        {
+                                            <td><b>@routine.Name</b> - @routine.Type - @routine.Description</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="min-row"><b>@Html.ActionLink(routine.Name, "ExportRoutine", "Export", new { name = routine.Name }, null)</b> - @routine.Type - @routine.Description</td>
+                                        }
+
+                                    }
+                                    
+                                </tr>
+
+                            }
+
+                        }
+                    }
+                </tbody>
+            </table>
+        }
+    }
+</div>
+<span style="display:block; height: 20%;"></span>
+<hr class="alert alert-primary" style="background-color:lightsteelblue; height:auto" />
+@{
+    //-----------------------------------------------------------------------------------------
+}
+<div>
+    <div id="ModuleBox" div style="display: inline-block; width:45% " align="left">
+        @{
+            <h3 align="left">Modules</h3>
+            if (Model.Modules == null)
+            {
+                <p>No modules added!</p>
+            }
+            else
+            {
+
+                <table id="module" class="table table-bordered table-hover" align="left" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Module</th>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="min-row">@Model.Controller.ProductType.ToString()</td>
+                            <td class="min-row">@Model.Controller.Name</td>
+                        </tr>
+
+                        @foreach (var module in Model.Modules)
+                {
+                            <tr>
+                                <td class="min-row">@module.IOModulesType.ToString()</td>
+                                <td class="min-row">@module.Name</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        }
+
+
+    </div>
+    <span style="display:inline-block; width: 5%;"></span>
+    @{
+        //-----------------------------------------------------------------------------------------
+    }
+    <div id="ModuleBox" div style="display: inline-block; width:45% " align="right">
+        @{
+            <h3 align="left">Add-On instruction definitions</h3>
+            if (Model.AOIs == null)
+            {
+                <p>Generate project first!</p>
+            }
+            else
+            {
+
+                <table id="aoi" class="table table-bordered table-hover" align="right" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Group</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var aoi in Model.AOIs)
+                        {
+                            <tr>
+                                <td class="min-row">@aoi.AOIName</td>
+                                <td class="min-row">@aoi.Group</td>
+                                <td class="min-row">@aoi.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        }
+
+    </div>
+</div>
+
+<span style="display:block; height: 20%;"></span>
+<hr class="alert alert-primary" style="background-color:lightsteelblue; height:auto" />
+
+<div>
+    <div id="TagBox" style="display: inline-block; width:45% " align="left">
+        <h3 align="left">Tags</h3>
+        @{
+            if (Model.Tags == null)
+            {
+                <p>Generate project first!</p>
+            }
+            else
+            {
+                <table id="tag" class="table table-bordered table-hover" align="left" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var tag in Model.Tags)
+                {
+                            <tr>
+                                <td class="min-row">@tag.Name</td>
+                                <td class="min-row">@tag.Type</td>
+                                <td class="min-row">@tag.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+        }
+
+    </div>
+    <span style="display:inline-block; width: 5%;"></span>
+    <div id="UDTBox" div style="display: inline-block; width:45% " align="right">
+        <h3 align="left">User-defined datatypes</h3>
+        @{
+            if (Model.UDTs == null)
+            {
+                <p>Generate project first!</p>
+            }
+            else
+            {
+                <table id="udt" class="table table-bordered table-hover" align="left" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var udt in Model.UDTs)
+                {
+                            <tr>
+                                <td class="min-row">@Html.ActionLink(udt.Name, "ExportUDT", "Export", new { name = udt.Name }, null)</td>
+                                <td class="min-row">@udt.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        }
+        
+    </div>
+</div>
+
+<button style="float: right;"> @Html.ActionLink("Download project", "Download", "Export", new { @class = "btn btn-ptimary" }) </button>
+
+

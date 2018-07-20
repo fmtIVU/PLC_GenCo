@@ -6,14 +6,13 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<h3>I/O List</h3>
 @if (!Model.IOs.Any())
 {
     <p>We don't have any I/Os yet.</p>
 }
 else
 {
-    <h3>I/O List</h3>
-    <button> @Html.ActionLink("Auto match", "MatchToStandards", "IOList", null) </button>
     <table id="IOs" class="table table-bordered table-hover">
         <thead>
             <tr>
@@ -22,9 +21,10 @@ else
                 <th>I/O Type</th>
                 <th>I/O Address</th>
                 <th>Comment</th>
-                <th>Parent</th>
+                <th>Parent comp.</th>
                 <th>Standard</th>
                 <th>Match status</th>
+                <th>Match/Del</th>
             </tr>
         </thead>
         <tbody>
@@ -32,35 +32,79 @@ else
             {
 
                 String parentName;
+                String parentStandard;
 
-                var checkParent = Model.Components.FirstOrDefault(c => c.Id == io.Parent);
-                if (checkParent != null)
+                var parent = Model.Components.FirstOrDefault(c => c.Id == io.ComponentId);
+
+                if (parent != null)
                 {
-                    parentName = checkParent.Name;
+                    if (!String.IsNullOrEmpty(io.ParentName))
+                    {
+                        parentName = io.ParentName;
+                    }
+                    else
+                    {
+                        parentName = "Single";
+                    }
+
+                    if (parent.StandardId != null)
+                    {
+                        parentStandard = Model.Standards.First(c => c.Id == parent.StandardId).AOIName;
+                    }
+                    else
+                    {
+                        parentStandard = "No standard";
+                    }
                 }
                 else
                 {
-                    parentName = "No parent";
+                    parentName = "No component";
+                    parentStandard = "No standard";
                 }
+
+
+
+
                 <tr class="m">
 
                     <td>@Html.ActionLink(io.Name, "IOForm", "IOList", new { id = io.Id }, null)</td>
                     <td>@io.Location</td>
                     <td>@io.ConnectionType.ToString()</td>
-                    <td>Module: @io.PLCAddress.Module.ToString() Channel: @io.PLCAddress.Channel.ToString()</td>
+                    <td>Mod: @io.IOAddress.Module.ToString() Ch: @io.IOAddress.Channel.ToString()</td>
                     <td>@io.Comment</td>
-                    <td>@parentName</td>
-                    <td>@Enums.GetDisplayName(io.Standard)</td>
+                    <td>@Html.ActionLink(parentName, "Edit", "Factory", new { id = io.ComponentId }, null)</td>
+                    @{
+
+                        if (io.MatchStatus != Enums.MatchStatus.Check)
+                        {
+                            <td>@parentStandard</td>
+                        }
+                        else
+                        {
+                            Model.Component = Model.Components.FirstOrDefault(c => c.Id == io.ComponentId);
+                            <td>
+                                @Html.DropDownListFor(m => m.Component.StandardId, new SelectList(Model.Standards.Where(c => c.ConnectionType == io.ConnectionType), "Id", "AOIName"), "Select standard", new { @class = "form-control" })
+                            </td>      
+                        }
+                    }
+
+
                     <td class="matching">@Enums.GetDisplayName(io.MatchStatus)</td>
+                    <td valign="middle" align="center">
+                        <img src="~/Resources/approve.png" width="20" height="20" class="btn-link js-edit" data-io-id="@io.Id" />
+                        <span style="display:inline-block; width: 20%;" ></span>
+                        <img src="~/Resources/delete.png" width="20" height="20" class="btn-link js-deleteIO" data-delIO-id="@io.Id" />
+                    </td>
                 </tr>
-            }
+                        }
         </tbody>
     </table>
+
 }
 
 
 <h3>Parent components</h3>
-@if (!Model.Components.Any(c => c.IsParent == true))
+@if (!Model.Components.Any(c => c.Depandancy == Enums.Dependancy.Parent))
 {
     <p>We don't have any parent components yet.</p>
 }
@@ -70,26 +114,43 @@ else
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Standard</th>
                 <th>Location</th>
                 <th>I/O Type</th>
+                <th>Comment</th>
+                <th>Standard</th>
                 <th>Delete</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var component in Model.Components.Where(c => c.IsParent == true).ToList())
+            @foreach (var component in Model.Components.Where(c => c.Depandancy == Enums.Dependancy.Parent).ToList())
             {
                 <tr>
                     <td>@Html.ActionLink(component.Name, "Edit", "Factory", new { id = component.Id }, null)</td>
-                    <td class="matchingParent">@Enums.GetDisplayName(component.StandardComponent)</td>
                     <td>@component.Location</td>
                     <td>@component.ConnectionType</td>
-                    <td><button data-component-id="@component.Id" class="btn-link js-delete">Delete</button></td>
-                </tr>
-            }
+                    <td>@component.Comment</td>
+                    <td class="matchingParent">
+                        @{
+                            String displayStandard;
+                            var std = Model.Standards.FirstOrDefault(c => c.Id == component.StandardId);
+
+                            if (std != null)
+                            {
+                                displayStandard = std.AOIName;
+                            }
+                            else
+                            {
+                                displayStandard = "No Match";
+                            }
+                        }@displayStandard
+                    </td>
+                    <td valign="middle" align="center"><img src="~/Resources/delete.png" width="20" height="20" class="btn-link js-delete" data-component-id="@component.Id" /></td>
+                    
+            </tr>
+                        }
         </tbody>
     </table>
-}
+                        }
 
 
 
@@ -97,6 +158,62 @@ else
 {
 
     <script>
+        $(document).ajaxStop(function(){
+            window.location.reload();
+        });
+
+        $("#IOs .js-deleteIO").on("click", function () {
+            var img = $(this);
+
+            bootbox.confirm("Are you sure you want to delete this IO?", function (result) {
+                if (result) {
+                    $.ajax({
+                        url: "/api/ios/" + img.attr("data-delIO-id"),
+                        method: "DELETE",
+                        success: function () {
+                            img.parents("tr").remove();
+                        }
+                    });
+                }
+            });
+        });
+
+        $("#IOs .js-edit").on("click", function () {
+            var img = $(this);
+            
+            var Components = JSON.parse('@Html.Raw(Json.Encode(@Model.Components))');
+            var component;
+            
+            for (var i = 0; i < Components.length; i++) {
+                if (Components[i].IOId == img.attr("data-io-id")) {
+                    component = Components[i];
+                }
+            }
+
+            $.ajax({
+                url: "/api/components/" + component.Id,
+                method: "PUT",
+                data: {
+                    Id: component.Id,
+                    StandardId: $("#Component_StandardId").val(),
+                    IdIO: component.IOId,
+                    Name: component.Name,
+                    Location: component.Location,
+                    Comment: component.Comment,
+                    Depandancy: component.Depandancy,
+                    MatchStatus: component.MatchStatus,
+                    ConnectionType: component.ConnectionType,
+                },
+                dataType: "Component",
+                success: function () {
+                    img.closest("tr").find('td.matching').remove();
+                }
+            });
+        });
+
+
+
+
         $(document).ready(function () {
             $("#IOs").DataTable({
                 "dom": '<"top"f>rt<"bottom"><"clear">',
@@ -151,7 +268,7 @@ else
 
             $(document).ready(function () {
                 $('#parents td.matchingParent').each(function () {
-                    switch ($(this).text()) {
+                    switch ($(this).text().trim()) {
                         case ("No Match"):
                             $(this).css('background-color', '#ffad99');
                             break;

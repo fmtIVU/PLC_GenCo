@@ -10,6 +10,9 @@ namespace PLC_GenCo.ViewModels
     {
         public List<IO> IOs { get; set; }
         public List<Component> Components{ get; set; }
-       
+        public List<Standard> Standards { get; set; }
+        public Component Component { get; set; }
+
+
     }
 }

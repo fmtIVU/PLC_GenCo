@@ -24,12 +24,6 @@
         @Html.ValidationMessageFor(m => m.IO.Comment)
     </div>
     <div class="form-group">
-        @Html.LabelFor(m => m.IO.Standard)
-        @Html.EnumDropDownListFor(m => m.IO.Standard, "Select standard", new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.IO.Standard)
-
-    </div>
-    <div class="form-group">
         @Html.LabelFor(m => m.IO.ConnectionType)
         @Html.EnumDropDownListFor(m => m.IO.ConnectionType, "Connection select", new { @class = "form-control" })
         @Html.ValidationMessageFor(m => m.IO.ConnectionType)
@@ -40,35 +34,47 @@
         @Html.DropDownListFor(m => m.IO.Location, new SelectList(Model.IOLocations, "Name", "Name"), "Select Location", new { @class = "form-control" })
         @Html.ValidationMessageFor(m => m.IO.Location)
     </div>
-
     <div class="form-group">
-        @Html.LabelFor(m => m.IO.PLCAddress.Module)
-        @Html.TextBoxFor(m => m.IO.PLCAddress.Module, new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.IO.PLCAddress.Module)
+        @Html.LabelFor(m => m.IO.IOAddress.Type, "IO type")
+        @Html.EnumDropDownListFor(m => m.IO.IOAddress.Type, "Select IO type", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.IO.IOAddress.Type)
     </div>
     <div class="form-group">
-        @Html.LabelFor(m => m.IO.PLCAddress.Channel)
-        @Html.TextBoxFor(m => m.IO.PLCAddress.Channel, new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.IO.PLCAddress.Channel)
+        @Html.LabelFor(m => m.IO.IOAddress.IPorMBAddress)
+        @Html.TextBoxFor(m => m.IO.IOAddress.IPorMBAddress, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.IO.IOAddress.IPorMBAddress)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.IO.IOAddress.Module)
+        @Html.TextBoxFor(m => m.IO.IOAddress.Module, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.IO.IOAddress.Module)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.IO.IOAddress.Channel)
+        @Html.TextBoxFor(m => m.IO.IOAddress.Channel, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.IO.IOAddress.Channel)
     </div>
 
     if (Model.Parents.Any())
         {
             <div class="form-group">
-                @Html.LabelFor(m => m.IO.Parent)
-                @Html.DropDownListFor(m => m.IO.Parent, new SelectList(Model.Parents, "Id", "Name"), "Select Parent", new { @class = "form-control" })
-                @Html.ValidationMessageFor(m => m.IO.Parent)
+                @Html.LabelFor(m => m.IO.ParentName)
+                @Html.DropDownListFor(m => m.IO.ParentName, new SelectList(Model.Parents, "Name", "Name"), "Select Parent", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.IO.ParentName)
             </div>
         }
 
 
     @Html.HiddenFor(m => m.IO.Id)
+    @Html.HiddenFor(m => m.IO.ComponentId)
 
     <button type="submit" class="btn btn-primary">Confirm</button>
-    <span style="display:inline-block; width: 100px;"></span>
-    <button class="btn btn-primary">@Html.ActionLink(" ", "Index", "IOList", null)Cancel </button>
 
 }
+<p>
+    <span style="display:inline-block; width: 20%;"></span>
+    <input type="button" value="Cancel" class="btn btn-light" onclick="@("window.location.href='" + @Url.Action("Index", "IOList") + "'");" />
+</p>
 
 
 @section scripts

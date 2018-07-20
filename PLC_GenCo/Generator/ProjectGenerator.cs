@@ -14,7 +14,7 @@ namespace PLC_GenCo.Generator
         public DataTypesInfo DataTypesInfo { get; }
         public ModulesInfo ModulesInfo { get; }
         public AddOnInstructionDefinitionsInfo AddOnInstructionDefinitionsInfo { get; }
-        public GlobalTagsInfo GlobalTagsInfo { get; }
+        public TagsInfo TagsInfo { get; }
         public ProgramsInfo ProgramsInfo { get; }
         public TasksInfo TasksInfo { get; }
         //-----------------------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ namespace PLC_GenCo.Generator
         //constructor
         public ProjectGenerator(ControllerInfo controllerInfo, DataTypesInfo dataTablesInfo,
                           ModulesInfo modulesInfo, AddOnInstructionDefinitionsInfo addOnInstructionDefinitionsInfo,
-                          GlobalTagsInfo globalTagsInfo, ProgramsInfo programsInfo, TasksInfo tasksInfo)
+                          TagsInfo tagsInfo, ProgramsInfo programsInfo, TasksInfo tasksInfo)
         {
 
             var initControllerInfo = new InitControllerInfo(controllerInfo);
@@ -37,8 +37,8 @@ namespace PLC_GenCo.Generator
             var initAddOnInstructionDefinitionsInfo = new InitAddOnInstructionDefinitionsInfo(addOnInstructionDefinitionsInfo);
             AddOnInstructionDefinitionsInfo = initAddOnInstructionDefinitionsInfo.InitializedData();
 
-            var initGlobalTagsInfo = new InitGlobalTagsInfo(globalTagsInfo);
-            GlobalTagsInfo = initGlobalTagsInfo.InitializedData();
+            var initGlobalTagsInfo = new InitTagsInfo(tagsInfo);
+            TagsInfo = initGlobalTagsInfo.InitializedData();
 
             var initProgramsInfo = new InitProgramsInfo(programsInfo);
             ProgramsInfo = initProgramsInfo.InitializedData();
@@ -56,10 +56,27 @@ namespace PLC_GenCo.Generator
             var generateDataTypes = new GenerateDataTypes(DataTypesInfo);
 
             var generateModules = new GenerateModules(ModulesInfo);
-            var generateAddOnDefinitions = new AddOnInstructionDefinitions(AddOnInstructionDefinitionsInfo);
-            var generateGlobalTags = GenerateGlobalTags(GlobalTagsInfo);
-            var generatePrograms = GeneratePrograms(ProgramsInfo);
-            var generateTasks = GenerateTasks(TasksInfo);
+            var generateAddOnDefinitions = new GenerateAddOnInstructionDefinitions(AddOnInstructionDefinitionsInfo);
+            var generateTags = new GenerateTags(TagsInfo);
+
+            //Program needs instance of Generate tags, in order to be able to create global tags
+            var programsInfoWithTagsInstance = new ProgramsInfo
+            {
+                GenerateTags = generateTags,
+                Modules = ProgramsInfo.Modules,
+                IOs = ProgramsInfo.IOs,
+                AIAlarmSetups = ProgramsInfo.AIAlarmSetups,
+                DIAlarmSetups = ProgramsInfo.DIAlarmSetups,
+                DIPulseSetups = ProgramsInfo.DIPulseSetups,
+                MDirSetups = ProgramsInfo.MDirSetups,
+                Components = ProgramsInfo.Components,
+                MotFrqSetups = ProgramsInfo.MotFrqSetups,
+                MRevSetups = ProgramsInfo.MRevSetups,
+                StdVlvSetups = ProgramsInfo.StdVlvSetups
+            };
+
+            var generatePrograms = new GeneratePrograms(programsInfoWithTagsInstance);
+            var generateTasks = new GenerateTasks(TasksInfo);
 
 
             var generatedProject = new XElement("RSLogix5000Content",
@@ -114,9 +131,9 @@ namespace PLC_GenCo.Generator
                     generateDataTypes.GetDataTypes(),
                     generateModules.GetModules(),
                     generateAddOnDefinitions.GetAddInstructionOnDefinitions(),
-                    generateGlobalTags,
-                    generatePrograms,
-                    generateTasks,
+                    generateTags.GetTags(),
+                    generatePrograms.GetPrograms(),
+                    generateTasks.GetTasks(),
                     new XElement("CST",
                         new XAttribute("MasterID", "0")
                     ),
@@ -163,53 +180,6 @@ namespace PLC_GenCo.Generator
         //-----------------------------------------------------------------------------------------------
         //-----------------------------------------------------------------------------------------------
 
-        private XElement GenerateGlobalTags(GlobalTagsInfo globalTagsInfo)
-        {
-            return new XElement("Tags");
-        }
-
-        private XElement GeneratePrograms(ProgramsInfo programsInfo)
-        {
-            var programs =
-                new XElement("Programs",
-                    new XElement("Program",
-                        new XAttribute("Name", "MainProgram"),
-                        new XAttribute("TestEdits", "false"),
-                        new XAttribute("MainRoutineName", "MainRoutine"),
-                        new XAttribute("Disabled", "false"),
-                        new XAttribute("UseAsFolder", "false"),
-                        new XElement("Tags"),
-                        new XElement("Routines",
-                            new XElement("Routine",
-                                new XAttribute("Name", "MainRoutine"),
-                                new XAttribute("Type", "RLL")
-                                )
-                            )
-                    )
-                );
-            return new XElement("Programs");
-        }
-
-        private XElement GenerateTasks(TasksInfo tasksInfo)
-        {
-            var tasks =
-                new XElement("Tasks",
-                    new XElement("Task",
-                        new XAttribute("Name", "MainTask"),
-                        new XAttribute("Type", "CONTINUOUS"),
-                        new XAttribute("Priority", "10"),
-                        new XAttribute("Watchdog", "500"),
-                        new XAttribute("DisableUpdateOutputs", "false"),
-                        new XAttribute("InhibitTask", "false"),
-
-                        new XElement("ScheduledProgram",
-                            new XAttribute("Name", "MainProgram")
-                        )
-                    )
-                );
-            return new XElement("Tasks");
-        }
-
-
+        
     }
 }

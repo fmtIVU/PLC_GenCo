@@ -26,11 +26,17 @@
     @Html.HiddenFor(m => m.Component)
     @Html.HiddenFor(m => m.DIAlarmSetup.Id)
     @Html.HiddenFor(m => m.DIAlarmSetup.IdComponent)
+    @Html.HiddenFor(m => m.DIAlarmSetup.IdIO)
+    @Html.HiddenFor(m => m.DIAlarmSetup.Comment)
 
 
     <button type="submit" class="btn btn-primary">Save</button>
 
 }
+<p align="right">
+    <span style="display:inline-block; width: 20%;"></span>
+    <input type="button" value="Cancel" class="btn btn-light" onclick="@("window.location.href='" + @Url.Action("Index", "Factory") + "'");" />
+</p>
 
 @section scripts
 {

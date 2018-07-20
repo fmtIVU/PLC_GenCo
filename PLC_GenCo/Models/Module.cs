@@ -11,7 +11,7 @@ namespace PLC_GenCo.Models
     {
         public int Id { get; set; }
 
-        public int ModuleAddress { get; set; }
+        public int Address { get; set; }
 
         public IOModulesType IOModulesType { get; set; }
 
@@ -20,8 +20,6 @@ namespace PLC_GenCo.Models
 
         public string[] Comments { get; set; }
 
-        //[Required]
-        //public string Location { get; set; }
 
     }
 }

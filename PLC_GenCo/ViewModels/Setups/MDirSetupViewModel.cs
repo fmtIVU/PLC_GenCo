@@ -12,6 +12,10 @@ namespace PLC_GenCo.ViewModels.Setups
         public MDirSetup MDirSetup { get; set; }
         public Component Component { get; set; }
         public List<IO> Childs { get;  set; }
-        
+        public AIAlarmSetup AIAlarm { get; set; }
+        public DIAlarmSetup DIAlarm { get; set; }
+        public List<DIAlarmSetup> DIAlarms { get; set; }
+        public List<AIAlarmSetup> AIAlarms { get; set; }
+
     }
 }

@@ -25,12 +25,16 @@
     @Html.HiddenFor(m => m.Component)
     @Html.HiddenFor(m => m.DIPulseSetup.Id)
     @Html.HiddenFor(m => m.DIPulseSetup.IdComponent)
+    @Html.HiddenFor(m => m.DIPulseSetup.IdIO)
 
 
     <button type="submit" class="btn btn-primary">Save</button>
 
 }
-
+<p align="right">
+    <span style="display:inline-block; width: 20%;"></span>
+    <input type="button" value="Cancel" class="btn btn-light" onclick="@("window.location.href='" + @Url.Action("Index", "Factory") + "'");" />
+</p>
 @section scripts
 {
     @Scripts.Render("~/bundles/jqueryval")

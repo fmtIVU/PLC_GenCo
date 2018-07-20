@@ -68,7 +68,7 @@ textarea {
 }
 
 
-.topalling {
+.topalign {
     margin-top: -4px;
     vertical-align:top;
 }
@@ -100,6 +100,10 @@ textarea {
 
 
 
+
+.vl {
+  border-left: thin solid #BDBDBD;
+}
 
 
 

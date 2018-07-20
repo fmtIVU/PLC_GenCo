@@ -1,0 +1,298 @@
+﻿
+@using PLC_GenCo.ViewModels
+@using PLC_GenCo.Models.Setups;
+@model PLC_GenCo.ViewModels.Setups.StdVlvSetupViewModel
+
+@{
+    ViewBag.Title = "SetupStdVlv";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Setup motor single direction</h2>
+<h3>@Model.Component.Name - @Model.Component.Location - @Model.Component.Comment</h3>
+@{ //Filter for dropdowns
+    var DIChilds = Model.Childs.Where(c => c.ConnectionType == PLC_GenCo.ViewModels.Enums.ConnectionType.DI);
+    var DOChilds = Model.Childs.Where(c => c.ConnectionType == PLC_GenCo.ViewModels.Enums.ConnectionType.DO);
+    var AIChilds = Model.Childs.Where(c => c.ConnectionType == PLC_GenCo.ViewModels.Enums.ConnectionType.AI);
+
+}
+<div class="topalign">
+    <div style="display: inline-block; width:35% " align="left" class="topalign">
+        @using (Html.BeginForm("SaveStdVlv", "Factory"))
+        {
+            <h3>I/O setup</h3>
+            <div class="form-group">
+                @Html.LabelFor(m => m.StdVlvSetup.OUTOpenSignal, "Open signal (OUT)")
+                @Html.DropDownListFor(m => m.StdVlvSetup.OUTOpenSignal, new SelectList(DOChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.StdVlvSetup.OUTOpenSignal)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.StdVlvSetup.OUTCloseSignal, "Close signal (OUT)")
+                @Html.DropDownListFor(m => m.StdVlvSetup.OUTCloseSignal, new SelectList(DOChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.StdVlvSetup.OUTCloseSignal)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.StdVlvSetup.INOpenedFB, "Opened signal (IN)")
+                @Html.DropDownListFor(m => m.StdVlvSetup.INOpenedFB, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.StdVlvSetup.INOpenedFB)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.StdVlvSetup.INClosedFB, "Closed signal (IN)")
+                @Html.DropDownListFor(m => m.StdVlvSetup.INClosedFB, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.StdVlvSetup.INClosedFB)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.StdVlvSetup.OUTResetSignal, "Reset signal (OUT)")
+                @Html.DropDownListFor(m => m.StdVlvSetup.OUTResetSignal, new SelectList(DOChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.StdVlvSetup.OUTResetSignal)
+            </div>
+            @Html.HiddenFor(m => m.Component)
+            @Html.HiddenFor(m => m.StdVlvSetup.Id)
+            @Html.HiddenFor(m => m.StdVlvSetup.IdComponent)
+
+            <div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        }
+
+    </div>
+
+
+
+    <div style="display: inline-block; width:64% " align="left" class="topalign">
+        <h3>Digital alarm setup</h3>
+        <table id="DIAlarmSetup" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>IO</th>
+                    <th>NO/NC</th>
+                    <th>Delay [s]</th>
+                    <th>Add/Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var i = 1;
+                    foreach (var DIAlarm in Model.DIAlarms)
+                    {
+                        <tr>
+                            <td style="width: 45%;">@DIAlarm.Comment</td>
+                            <td style="width: 25%;">@Enums.GetDisplayName(DIAlarm.InputType)</td>
+                            <td style="width: 15%;">@DIAlarm.TimeDelay</td>
+                            <td style="width: 15%;">
+                                <button data-DIAlarmSetup-id="@DIAlarm.Id" class="btn-link js-delete">Delete</button>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                }
+                @{// Add DIAlarm
+
+                    <tr>
+                        <td style="width: 45%;">@Html.DropDownListFor(m => m.DIAlarm.IdIO, new SelectList(DIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control", id = "DIIOId" })</td>
+                        <td style="width: 25%;">@Html.EnumDropDownListFor(m => m.DIAlarm.InputType, "Select input type", new { @class = "form-control", id = "DIIOInputType" })</td>
+                        <td style="width: 15%;">@Html.TextBoxFor(m => m.DIAlarm.TimeDelay, new { @class = "form-control", id = "DITimeDelay" })</td>
+                        <td style="width: 15%;">
+                            <button data-DIAlarmSetup-id="5" class="btn-link js-add">Add</button>
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<div style="width:100% " align="left" class="topalign">
+    <h3>Analog alarm setup</h3>
+    <table id="MeasurementSetup" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Input channel</th>
+                <th>Type</th>
+                <th>Scale Min</th>
+                <th>Scale Max</th>
+                <th>Alarm LL</th>
+                <th>Alarm L</th>
+                <th>Alarm H</th>
+                <th>Alarm HH</th>
+                <th>Delay [s]</th>
+                <th>Add/Delete</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                var j = 1;
+                foreach (var AIAlarm in Model.AIAlarms)
+                {
+                    <tr>
+                        <td style="width: 20%">@AIAlarm.Comment</td>
+                        <td style="width: 10%">@Enums.GetDisplayName(AIAlarm.AICType)</td>
+                        <td style="width: 10%">@AIAlarm.ScaleMin</td>
+                        <td style="width: 10%">@AIAlarm.ScaleMax</td>
+                        <td style="width: 10%">@AIAlarm.AlarmLL</td>
+                        <td style="width: 10%">@AIAlarm.AlarmL</td>
+                        <td style="width: 10%">@AIAlarm.AlarmH</td>
+                        <td style="width: 10%">@AIAlarm.AlarmHH</td>
+                        <td style="width: 5%">@AIAlarm.TimeDelay</td>
+                        <td style="width: 5%">
+                            <button data-AIAlarmSetup-id="@AIAlarm.Id" class="btn-link js-delete">Delete</button>
+                        </td>
+                    </tr>
+                    j++;
+                }
+            }
+            <tr>
+                <td style="width: 20%">@Html.DropDownListFor(m => m.AIAlarm.IdIO, new SelectList(AIChilds, "Id", "Comment"), "Select I/O", new { @class = "form-control", id = "AIIOId" })</td>
+                <td style="width: 10%">@Html.EnumDropDownListFor(m => m.AIAlarm.AICType, "Select input type", new { @class = "form-control", id = "AIAICType" })</td>
+                <td style="width: 10%">
+                    @Html.TextBoxFor(m => m.AIAlarm.ScaleMin, new { @class = "form-control", id = "AIScaleMin", type = "number", step = "0.01" })
+                </td>
+                <td style="width: 10%">
+                    @Html.TextBoxFor(m => m.AIAlarm.ScaleMax, new { @class = "form-control", id = "AIScaleMax", type = "number", step = "0.01" })
+                </td>
+                <td style="width: 10%">
+                    @Html.TextBoxFor(m => m.AIAlarm.AlarmLL, new { @class = "form-control", id = "AIAlarmLL", type = "number", step = "0.01" })
+                </td>
+                <td style="width: 10%">
+                    @Html.TextBoxFor(m => m.AIAlarm.AlarmL, new { @class = "form-control", id = "AIAlarmL", type = "number", step = "0.01" })
+                </td>
+                <td style="width: 10%">
+                    @Html.TextBoxFor(m => m.AIAlarm.AlarmH, new { @class = "form-control", id = "AIAlarmH", type = "number", step = "0.01" })
+                </td>  
+                <td style="width: 10%">
+                    @Html.TextBoxFor(m => m.AIAlarm.AlarmHH, new { @class = "form-control", id = "AIAlarmHH", type = "number", step = "0.01" })
+                </td>
+                <td style="width: 5%">
+                    @Html.TextBoxFor(m => m.AIAlarm.TimeDelay, new { @class = "form-control", id = "AITimeDelay" })
+                </td>
+                <td style="width: 5%">
+                    <button data-AIAlarmSetup-id="5" class="btn-link js-add">Add</button>
+                </td>
+
+            </tr>
+
+        </tbody>
+
+     </table>
+
+
+</div>
+<p align="right">
+    <input type="button" value="Confirm" class="btn btn-primary" onclick="@("window.location.href='" + @Url.Action("Index", "Factory") + "'");" />
+</p>
+
+
+
+
+    @section scripts
+{
+        <script>
+            $(document).ready(function () {
+                $("#AlarmSetup").DataTable({
+                    "dom": '<"top">rt<"bottom"><"clear">',
+                    "paging": false,
+                });
+
+                $("#DIAlarmSetup .js-delete").on("click", function () {
+                    var button = $(this);
+
+                    bootbox.confirm("Are you sure you want to delete this alarm?", function (result) {
+                        if (result) {
+                            $.ajax({
+                                url: "/api/DIAlarmSetups/" + button.attr("data-DIAlarmSetup-id"),
+                                method: "DELETE",
+                                success: function () {
+                                    button.parents("tr").remove();
+                                }
+                            });
+                        }
+                    });
+                });
+
+                $("#DIAlarmSetup .js-add").on("click", function () {
+                    var button = $(this);
+                    $.ajax({
+                        url: "/api/dialarmsetups",
+                        type: "POST",
+                        data: {
+                            Id: 0,
+                            IdComponent: @Model.Component.Id,
+                            IdIO: $("#DIIOId").val(),
+                            Comment: "In API",
+                            TimeDelay: $("#DITimeDelay").val(),
+                            InputType: $("#DIIOInputType").val(),
+                        },
+                        dataType: "DIAlarmSetup",
+                        success : function(data) {
+                            console.log(data);
+                            window.location.href=window.location.href;
+                        }
+
+
+                    });
+
+                });
+            });
+            //---------------------------------------------------------------------------------------------------------
+            $(document).ready(function () {
+                $("#MeasurementSetup").DataTable({
+                    "dom": '<"top">rt<"bottom"><"clear">',
+                    "paging": false,
+                });
+
+                $("#MeasurementSetup .js-delete").on("click", function () {
+                    var button = $(this);
+
+                    bootbox.confirm("Are you sure you want to delete this alarm?", function (result) {
+                        if (result) {
+                            $.ajax({
+                                url: "/api/AIAlarmSetups/" + button.attr("data-AIAlarmSetup-id"),
+                                method: "DELETE",
+                                success: function () {
+                                    button.parents("tr").remove();
+                                }
+                            });
+                        }
+                    });
+                });
+
+                $("#MeasurementSetup .js-add").on("click", function () {
+                    var button = $(this);
+                    $.ajax({
+                        url: "/api/aialarmsetups",
+                        type: "POST",
+                        data: {
+                            Id: 0,
+                            IdComponent: @Model.Component.Id,
+                            IdIO: $("#AIIOId").val(),
+                            Comment: "In API",
+                            AICType: $("#AIAICType").val(),
+                            ScaleMax: $("#AIScaleMax").val(),
+                            ScaleMin: $("#AIScaleMin").val(),
+                            TimeDelay: $("#AITimeDelay").val(),
+                            AlarmHigh: $("#AIAlarmHH").val(),
+                            AlarmHigh: $("#AIAlarmH").val(),
+                            AlarmEqual:$("#AIAlarmL").val(),
+                            AlarmLow: $("#AIAlarmLL").val()
+                        },
+                        dataType: "AIAlarmSetup",
+                        success : function(data) {
+                            console.log(data);
+                            window.location.href=window.location.href;
+                        }
+
+
+                    });
+
+                });
+
+            });
+            //-------------------------------------------------------------------------
+            $(document).ajaxStop(function(){
+                window.location.reload();
+            });
+
+        </script>
+        @Scripts.Render("~/bundles/jqueryval")
+    }

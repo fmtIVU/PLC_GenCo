@@ -16,7 +16,27 @@ namespace PLC_GenCo.Generator.Inits
 
         public DataTypesInfo InitializedData()
         {
-            //set default values
+            //Clean up danish letters for udt-s
+            foreach (var io in DataTablesInfo.IOs)
+            {
+                if (io.Name.Contains('å'))
+                {
+                    io.Name = io.Name.Replace("å", "aa");
+                }
+
+                if (io.Name.Contains('æ'))
+                {
+                    io.Name = io.Name.Replace("æ", "ae");
+                }
+
+                if (io.Name.Contains('ø'))
+                {
+                    io.Name = io.Name.Replace("ø", "oe");
+                }
+
+            }
+            
+
 
             return DataTablesInfo;
         }

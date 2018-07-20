@@ -4,6 +4,9 @@
 @{
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var filtered = new List<Standard>();
+    
 }
 
 <h2>Standards</h2>
@@ -17,17 +20,42 @@ else
         <thead>
             <tr>
                 <th>Component</th>
+                <th>Group</th>
                 <th>Connection</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var standard in Model)
             {
+                if (!filtered.Any(c => c.AOIName == standard.AOIName))
+                {
+                    filtered.Add(standard);
+                }
+
+            }
+            @foreach (var standard in filtered)
+            {
                 <tr>
-                    <td>@Html.ActionLink(Enums.GetDisplayName(standard.StandardComponent), "Details", "Standards", new { id = standard.Id }, null)</td>
-                    <td>@standard.ConnectionType </td>
+                    <td>@Html.ActionLink(standard.AOIName, "Details", "Standards", new { id = standard.Id }, null)</td>
+                    <td>@standard.Group</td>
+                    <td>
+                        @{
+                            String text = System.String.Empty;
+                            foreach (var connectionType in Model)
+                            {
+                                if (connectionType.AOIName == standard.AOIName)
+                                {
+                                    text += connectionType.ConnectionType.ToString() + ", ";
+                                }
+                            }
+                        }
+                        
+                        @text.Substring(0, text.Length - 2)
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
 }
+
+<button style="float: right;"> @Html.ActionLink("Load default", "LoadDefaultStandards", "Standards", null) </button>

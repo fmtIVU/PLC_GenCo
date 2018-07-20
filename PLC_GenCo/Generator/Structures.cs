@@ -1,4 +1,5 @@
 ﻿using PLC_GenCo.Models;
+using PLC_GenCo.Models.Setups;
 using PLC_GenCo.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -21,30 +22,51 @@ namespace PLC_GenCo.Generator
 
     public struct DataTypesInfo
     {
-        public List<Component> components;
-        public List<Standard> standards;
-        public List<ComponentLocation> locations;
-        public bool applyLocationFilter;
+        public List<Component> Components;
+        public List<Standard> Standards;
+        public List<ComponentLocation> Locations;
+        public List<IO> IOs;
+        public List<Module> Modules;
+        public List<DIPulseSetup> DIPulseSetups;
+        public List<MotFrqSetup> MotFrqSetups;
+        public List<DIAlarmSetup> DIAlarmSetups;
+        public List<AIAlarmSetup> AIAlarmSetups;
+
+        public bool ApplyLocationFilter;
     }
 
     public struct ModulesInfo
     {
         public ControllerInfo controller;
         public List<Module> modules;
-        
+        public List<MotFrqSetup> MotFrqSetups;
+        public List<IO> IOs;
+        public List<Component> Components;
+
     }
     public struct AddOnInstructionDefinitionsInfo
     {
-
+        public List<Component> Components;
+        public List<Standard> Standards;
     }
 
-    public struct GlobalTagsInfo
+    public struct TagsInfo
     {
 
     }
     public struct ProgramsInfo
     {
-
+        public List<Module> Modules;
+        public List<IO> IOs;
+        public GenerateTags GenerateTags;
+        public List<AIAlarmSetup> AIAlarmSetups;
+        public List<DIAlarmSetup> DIAlarmSetups;
+        public List<DIPulseSetup> DIPulseSetups;
+        public List<MDirSetup> MDirSetups;
+        public List<MRevSetup> MRevSetups;
+        public List<MotFrqSetup> MotFrqSetups;
+        public List<StdVlvSetup> StdVlvSetups;
+        public List<Component> Components;
     }
     public struct TasksInfo
     {

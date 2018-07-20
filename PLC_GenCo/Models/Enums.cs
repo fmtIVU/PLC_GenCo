@@ -7,67 +7,41 @@ namespace PLC_GenCo.ViewModels
 {
     public static class Enums
     {
-
-        public enum StandardComponent
+        public enum Dependancy
         {
-            [Display(Name = "No Match")]
-            No_Match,
+            Single,
+            Parent,
+            Child,
+        }
 
-            [Display(Name = "DI Alarm")]
-            DI_Alarm,
+        public enum FrqType
+        {
+            [Display(Name = "Danfoss VLT FC 202")]
+            FC202,
 
-            [Display(Name = "DI Poulse")]
-            DI_Pulse,
+            [Display(Name = "Danfoss VLT FC 302")]
+            FC302,
 
-            [Display(Name = "DO Single")]
-            DO,
-
-            [Display(Name = "AI Alarm")]
-            AI_Alarm,
-
-            //Parent components
-            [Display(Name = "Standard Motor DI")]
-            P_Std_Motor_Dir,
-
-            [Display(Name = "Standard Motor FRQ")]
-            P_Std_Motor_Dir_Frq,
-
-            [Display(Name = "Standard Motor Rev DI")]
-            P_Std_Motor_Rev,
-
-            [Display(Name = "Standard Motor Rev FRQ")]
-            P_Std_Motor_Rev_Frq,
-
-            [Display(Name = "Standard Valve")]
-            P_Std_Valve,
-
-            // Child Components
-            [Display(Name = "(C) AI")]
-            C_AI,
-
-            [Display(Name = "(C) AO")]
-            C_AO,
-
-            [Display(Name = "(C) DO")]
-            C_DO,
-
-            [Display(Name = "(C) DI")]
-            C_DI,
-
+            [Display(Name = "Danfoss VLT FC 301")]
+            FC301,
         }
 
         public enum ConnectionType
         {
+            [Display(Name = "Analog input")]
             AI,
+            [Display(Name = "Analog output")]
             AO,
+            [Display(Name = "Digital input")]
             DI,
+            [Display(Name = "Digital output")]
             DO,
+            [Display(Name = "Ethernet")]
             ETH,
-            ETH_DI,
-            ETH_DO,
-            ETH_AI,
-            ETH_AO,
+            [Display(Name = "Digital IO")]
             DIO,
+            [Display(Name = "No connection type")]
+            No_Connection_Type,
 
         }
 
@@ -123,6 +97,16 @@ namespace PLC_GenCo.ViewModels
             DIGITAL,
         }
 
+        public enum IOType
+        {
+            [Display(Name = "Ethernet module")]
+            IP,
+            [Display(Name = "PLC IO module")]
+            IO,
+            [Display(Name = "Modbus module")]
+            MB
+        }
+
         public static string GetDisplayName(this Enum enumValue)
         {
             return enumValue.GetType().GetMember(enumValue.ToString())
@@ -130,6 +114,7 @@ namespace PLC_GenCo.ViewModels
                            .GetCustomAttribute<DisplayAttribute>()
                            .Name;
         }
+
 
         
     }

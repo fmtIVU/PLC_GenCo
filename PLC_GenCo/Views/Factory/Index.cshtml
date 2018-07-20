@@ -3,47 +3,155 @@
 @{
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
-}
+ }
 
-<h2>Component overview</h2>
+
+<h2>Single components</h2>
 
     <table id="components" class="table table-bordered table-hover">
         <thead>
             <tr>
-                <th>Location</th>
                 <th>Name</th>
+                <th>Location</th>
                 <th>Comment</th>
                 <th>Standard</th>
-                <th>Connection</th>
+                <th>Setup Status</th>
                 <th>DEL</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var component in Model.Components)
+            @foreach (var component in Model.Components.Where(c => c.Depandancy == Enums.Dependancy.Single))
             {
                 <tr class="min-row">
-                    <td class="min-row">@component.Location</td>
                     <td class="min-row">@Html.ActionLink(component.Name, "Edit", "Factory", new { id = component.Id }, null)</td>
+                    <td class="min-row">@component.Location</td>
                     <td class="min-row">@component.Comment</td>
-                    <td class="min-row">@Html.ActionLink(Enums.GetDisplayName(component.StandardComponent), "Setup", "Factory", new { id = component.Id }, null)</td>
-                    <td class="min-row">@component.ConnectionType </td>
+
                     <td class="min-row">
-                        <button data-component-id="@component.Id" class="btn-link js-delete">Delete</button>
+                        @{
+                            Standard std;
+                            String textStandard;
+                            if (component.StandardId != null)
+                            {
+                                std = Model.Standnards.FirstOrDefault(c => c.Id == component.StandardId);
+                                if (std != null)
+                                {
+                                    textStandard = std.AOIName;
+                                }
+                                else
+                                {
+                                    textStandard = "No standard";
+                                }
+
+                            }
+                            else
+                            {
+                                textStandard = "No standard";
+                            }
+
+                            //Do not display link in case "No standard"
+                            if (textStandard != "No standard")
+                            {
+                                @Html.ActionLink(textStandard, "Setup", "Factory", new { id = component.Id }, null)
+                            }
+                            else
+                            {
+                                @textStandard
+                            }
+
+                        }
+                    </td>
+
+                    <td class="min-row, setup">@GetSetupText(component)</td>
+                    <td class="min-row" valign="middle" align="center" width="5%">
+                        <img src="~/Resources/delete.png" width="20" height="20" class="btn-link js-delete" data-component-id="@component.Id" />
                     </td>
                 </tr>
             }
         </tbody>
     </table>
+<h2>Parent components</h2>
+<table id="parents" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Location</th>
+            <th>Name</th>
+            <th>Comment</th>
+            <th>Standard</th>
+            <th>Setup Status</th>
+            <th>DEL</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var component in Model.Components.Where(c => c.Depandancy == Enums.Dependancy.Parent))
+        {
+            <tr class="min-row">
+                <td>
+                    <button data-parentDetail-id="@component.Id" class="btn-link js-detail">Detail</button>
+                </td>
+                <td class="min-row">@component.Location</td>
+                <td class="min-row">@Html.ActionLink(component.Name, "Edit", "Factory", new { id = component.Id }, null)</td>
+                <td class="min-row">@component.Comment</td>
+
+                <td class="min-row">
+                    @{
+                        Standard std;
+                        String textStandard;
+                        if (component.StandardId != null)
+                        {
+                            std = Model.Standnards.FirstOrDefault(c => c.Id == component.StandardId);
+                            if (std != null)
+                            {
+                                textStandard = std.AOIName;
+                            }
+                            else
+                            {
+                                textStandard = "No standard";
+                            }
+
+                        }
+                        else
+                        {
+                            textStandard = "No standard";
+                        }
+
+                        //Do not display link if there is no standard
+                        if (textStandard != "No standard")
+                        {
+                            @Html.ActionLink(textStandard, "Setup", "Factory", new { id = component.Id }, null)
+                        }
+                        else
+                        {
+                            @textStandard
+                        }
+                    }
+                </td>
+
+                <td class="min-row, setup">@GetSetupText(component)</td>
+
+                <td class="min-row" valign="middle" align="center" width="5%">
+                    <img src="~/Resources/delete.png" width="20" height="20" class="btn-link js-delete" data-parent-id="@component.Id" />
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
 
 <p>
     <button style="float: left;"> @Html.ActionLink("Add", "AddComponent", "Factory", null) </button>
-    <button style="float: right;"> @Html.ActionLink("Download", "download", "Factory", null) </button>
-
 </p>
+
+
     @section scripts
 {
 
         <script>
+            //======================================================================================================
+            //COMPONENT TABLE
             $(document).ready(function () {
                 $("#components").DataTable({
                     "dom": '<"top"f>rt<"bottom"><"clear">',
@@ -65,6 +173,464 @@
                         }
                     });
                 });
+                $(document).ready(function () {
+                    $('#components td.setup').each(function () {
+                        switch ($(this).text()) {
+                            case ("No Setup"):
+                                $(this).css('background-color', '#E5E8E8');
+                                break;
+                            case ("Missing Setup"):
+                                $(this).css('background-color', '#ffad99');
+                                break;
+                            default:
+                                $(this).css('background-color', '#ccffcc');
+                                break;
+
+                        }
+                    });
+                });
             });
+            //===================================================================================================================
+            //PARENT TABLE
+            $(document).ready(function () {
+                var Ptable= $("#parents").DataTable({
+                    "dom": '<"top">rt<"bottom"><"clear">',
+                    "paging": false,
+                });
+
+                $("#parents .js-delete").on("click", function () {
+                    var button = $(this);
+
+                    bootbox.confirm("Are you sure you want to delete this component?", function (result) {
+                        if (result) {
+                            $.ajax({
+                                url: "/api/components/" + button.attr("data-parent-id"),
+                                method: "DELETE",
+                                success: function () {
+                                    window.location.href = window.location.href;
+                                }
+                            });
+                        }
+                    });
+                });
+                // Add event listener for opening and closing details
+                $('#parents .js-detail').on('click', function () {
+                    var button = $(this);
+                    var tr = $(this).closest('tr');
+                    var row = Ptable.row(tr);
+
+                    if (row.child.isShown()) {
+                        // This row is already open - close it
+                        row.child.hide();
+                        tr.removeClass('shown');
+                    }
+                    else {
+                        // Open this row
+                        row.child(format(button.attr("data-parentDetail-id"))).show();
+                        tr.addClass('shown');
+                    }
+                });
+                $(document).ready(function () {
+                    $('#parents td.setup').each(function () {
+                        switch ($(this).text()) {
+                            case ("No Setup"):
+                                $(this).css('background-color', '#E5E8E8');
+                                break;
+                            case ("Missing Setup"):
+                                $(this).css('background-color', '#ffad99');
+                                break;
+                            default:
+                                $(this).css('background-color', '#ccffcc');
+                                break;
+
+                        }
+                    });
+                });
+
+
+            });
+            function format(id) {
+
+                var text = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">';
+                text += '<tr>';
+
+
+                var DIAlarms = JSON.parse('@Html.Raw(Json.Encode(@Model.DIAlarms))');
+                var AIAlarms = JSON.parse('@Html.Raw(Json.Encode(@Model.AIAlarms))');
+
+                var filteredAIA = [];
+                for (var i = 0; i < AIAlarms.length; i++) {
+                    if (AIAlarms[i].IdComponent == id) {
+                        filteredAIA.push(AIAlarms[i]);
+                    }
+                }
+                var filteredDIA = [];
+                for (var i = 0; i < DIAlarms.length; i++) {
+                    if (DIAlarms[i].IdComponent == id) {
+                        filteredDIA.push(DIAlarms[i]);
+                    }
+                }
+
+                for (var i = 0; i < filteredDIA.length; i++) {
+                    text += '<tr>';
+                    text += '<td>' + filteredDIA[i].Comment + '</td>';
+
+                    text += '<td>';
+                    if (filteredDIA[i].InputType == 0) {
+                        text += 'NC, ';
+                    } else {
+                        text += 'NO, ';
+                    }
+
+
+                    if (filteredDIA[i].TimeDelay != null) {
+                        text += 'TD';
+                    }
+
+                    '</td>';
+
+                    text += '</tr>';
+                }
+
+                for (var i = 0; i < filteredAIA.length; i++) {
+                    text += '<tr>';
+                    text += '<td>' + filteredAIA[i].Comment + '</td>';
+
+                    text += '<td>';
+                    switch (filteredAIA[i].AICType) {
+                        case(0):
+                            text += '4-20, ';
+                            break;
+                        case (1):
+                            text += '0-20, ';
+                            break;
+                        case (2):
+                            text += 'DIG, ';
+                            break;
+                        default:
+                            break;
+
+                    }
+                    if (filteredAIA[i].ScaleMax != null) {
+                        text += 'Smax, ';
+                    }
+                    if (filteredAIA[i].ScaleMin != null) {
+                        text += 'Smin, ';
+                    }
+                    if (filteredAIA[i].AlarmLL != null) {
+                        text += 'LL, ';
+                    }
+                    if (filteredAIA[i].AlarmL != null) {
+                        text += 'L, ';
+                    }
+                    if (filteredAIA[i].AlarmH != null) {
+                        text += 'H, ';
+                    }
+                    if (filteredAIA[i].AlarmHH != null) {
+                        text += 'HH, ';
+                    }
+
+                    if (filteredAIA[i].TimeDelay != null) {
+                        text += 'TD, ';
+                    }
+
+                    text += '<td>';
+
+
+                    text += '</tr>';
+
+                }
+
+
+                text += '</tr>'
+                text += '</table>';
+                return text;
+            }
+
         </script>
+
     }
+
+@functions{
+
+    public string GetSetupText(Component component)
+    {
+        String text = System.String.Empty;
+        var std = Model.Standnards.FirstOrDefault(c => c.Id == component.StandardId);
+        if (std == null)
+        {
+            return "No Setup";
+        }
+
+        switch (std.AOIName)
+        {
+            case ("AlarmDi"):
+                var DIAlarm = Model.DIAlarms.FirstOrDefault(c => c.IdComponent == component.Id);
+
+                if (DIAlarm == null)
+                {
+                    text += "Missing Setup";
+                }
+                else
+                {
+
+                    if (DIAlarm.TimeDelay != null)
+                    {
+                        text += "TD, ";
+                    }
+
+                    text += @DIAlarm.InputType.ToString();
+                }
+                break;
+            case ("CNT"):
+                var DIPulse = Model.DIPulses.FirstOrDefault(c => c.IdComponent == component.Id);
+
+                if (DIPulse == null)
+                {
+                    text += "Missing Setup";
+                }
+                else
+                {
+                    if (DIPulse.PulsesPerUnit != null)
+                    {
+                        text += "PPU: " + DIPulse.PulsesPerUnit;
+                    }
+                    else
+                    {
+                        text += "Missing Setup";
+                    }
+                }
+                break;
+            case ("Analog"):
+                var AIAlarm = Model.AIAlarms.FirstOrDefault(c => c.IdComponent == component.Id);
+
+                if (AIAlarm == null)
+                {
+                    text += "Missing Setup";
+                }
+                else
+                {
+
+                    switch (AIAlarm.AICType)
+                    {
+                        case Enums.AICType.AI0420:
+                            text += "4-20, ";
+                            break;
+                        case Enums.AICType.AI0020:
+                            text += "0-20, ";
+                            break;
+                        case Enums.AICType.DIGITAL:
+                            text += "DIG, ";
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (AIAlarm.ScaleMax != null)
+                    {
+                        text += "Smax, ";
+                    }
+                    if (AIAlarm.ScaleMin != null)
+                    {
+                        text += "Smin, ";
+                    }
+                    if (AIAlarm.AlarmLL != null)
+                    {
+                        text += "LL, ";
+                    }
+                    if (AIAlarm.AlarmL != null)
+                    {
+                        text += "L, ";
+                    }
+                    if (AIAlarm.AlarmH != null)
+                    {
+                        text += "H, ";
+                    }
+                    if (AIAlarm.AlarmHH != null)
+                    {
+                        text += "HH, ";
+                    }
+                    if (AIAlarm.TimeDelay != null)
+                    {
+                        text += "TD";
+                    }
+
+                }
+                break;
+            case ("MotorDir"):
+                if (component.ConnectionType == Enums.ConnectionType.DIO)
+                {
+                    var MDir = Model.MDirs.FirstOrDefault(c => c.IdComponent == component.Id);
+
+                    if (MDir == null)
+                    {
+                        text += "Missing Setup";
+                    }
+                    else
+                    {
+
+                        if (MDir.OUTStartSignal != null)
+                        {
+                            text += "Start, ";
+                        }
+                        if (MDir.OUTResetSignal != null)
+                        {
+                            text += "Reset, ";
+                        }
+                        if (MDir.INRunningFB != null)
+                        {
+                            text += "FB, ";
+                        }
+                    }
+                }else
+                {
+                    var MotFrq = Model.MotFrqs.FirstOrDefault(c => c.IdComponent == component.Id);
+
+                    if (MotFrq == null)
+                    {
+                        text += "Missing Setup";
+                    }
+                    else
+                    {
+                        switch (MotFrq.FrqType)
+                        {
+                            case Enums.FrqType.FC202:
+                                text += "FC202, ";
+                                break;
+                            case Enums.FrqType.FC302:
+                                text += "FC302, ";
+                                break;
+                            case Enums.FrqType.FC301:
+                                text += "FC301, ";
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if (MotFrq.IPAddress != null)
+                        {
+                            text += "IP, ";
+                        }
+                        if (MotFrq.NominalSpeed != null)
+                        {
+                            text += "Nom. Speed,";
+                        }
+                    }
+                }
+
+                break;
+
+            case ("MotorRev"):
+                if (component.ConnectionType == Enums.ConnectionType.DIO)
+                {
+                    var MRev = Model.MRevs.FirstOrDefault(c => c.IdComponent == component.Id);
+
+                    if (MRev == null)
+                    {
+                        text += "Missing Setup";
+                    }
+                    else
+                    {
+
+                        if (MRev.OUTStartSignalFW != null)
+                        {
+                            text += "FW, ";
+                        }
+                        if (MRev.OUTStartSignalBW != null)
+                        {
+                            text += "BW, ";
+                        }
+                        if (MRev.OUTResetSignal != null)
+                        {
+                            text += "Res, ";
+                        }
+                        if (MRev.INRunningFBFW != null)
+                        {
+                            text += "FB-FW, ";
+                        }
+                        if (MRev.INRunningFBBW != null)
+                        {
+                            text += "FB-BW, ";
+                        }
+
+                    }
+                }else
+                {
+                    var MotFrqR = Model.MotFrqs.FirstOrDefault(c => c.IdComponent == component.Id);
+
+                    if (MotFrqR == null)
+                    {
+                        text += "Missing Setup";
+                    }
+                    else
+                    {
+                        switch (MotFrqR.FrqType)
+                        {
+                            case Enums.FrqType.FC202:
+                                text += "FC202, ";
+                                break;
+                            case Enums.FrqType.FC302:
+                                text += "FC302, ";
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if (MotFrqR.IPAddress != null)
+                        {
+                            text += "IP, ";
+                        }
+                        if (MotFrqR.NominalSpeed != null)
+                        {
+                            text += "Nom. Speed,";
+                        }
+
+                    }
+                }
+
+                break;
+
+            case ("ValveControl"):
+                var StdVlv = Model.StdVlvs.FirstOrDefault(c => c.IdComponent == component.Id);
+
+                if (StdVlv == null)
+                {
+                    text += "Missing Setup";
+                }
+                else
+                {
+
+                    if (StdVlv.OUTOpenSignal != null)
+                    {
+                        text += "Opn, ";
+                    }
+                    if (StdVlv.OUTCloseSignal != null)
+                    {
+                        text += "Cls, ";
+                    }
+                    if (StdVlv.INOpenedFB != null)
+                    {
+                        text += "Opn-FB, ";
+                    }
+                    if (StdVlv.INClosedFB != null)
+                    {
+                        text += "Cls-FB, ";
+                    }
+                    if (StdVlv.OUTResetSignal != null)
+                    {
+                        text += "Res";
+                    }
+
+                }
+                break;
+            default:
+                text += "No Setup";
+                break;
+        }
+
+
+        return(text);
+    }
+
+}
+

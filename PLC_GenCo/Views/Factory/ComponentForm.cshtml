@@ -29,21 +29,30 @@
         @Html.ValidationMessageFor(m => m.Component.Location)
     </div>
     <div class="form-group">
-        @Html.LabelFor(m => m.Component.StandardComponent)
-        @Html.EnumDropDownListFor(m => m.Component.StandardComponent, "Select standard", new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.Component.StandardComponent)
+        @Html.LabelFor(m => m.Component.StandardId, "Standard")
+        @Html.DropDownListFor(m => m.Component.StandardId, new SelectList(Model.Standards, "Id", "AOIName"), "Select standard", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Component.StandardId)
     </div>
-    <div class=“checkbox”>
-        @Html.CheckBoxFor(m => m.Component.IsParent)	Is parent component?
+
+    <div>
+        @Html.LabelFor(m => m.Component.Depandancy)
+        @Html.EnumDropDownListFor(m => m.Component.Depandancy, "Select depandancy", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Component.Depandancy)
     </div>
 
 
     @Html.HiddenFor(m => m.Component.Id)
+    @Html.HiddenFor(m => m.Component.IOId)
     @Html.HiddenFor(m => m.Component.ConnectionType)
+    <p></p>
 
-    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="submit" class="btn btn-primary">Confirm</button>
 
 }
+<p>
+    <span style="display:inline-block; width: 20%;"></span>
+    <input type="button" value="Cancel" class="btn btn-light" onclick="@("window.location.href='" + @Url.Action("Index", "IOList") + "'");" />
+</p>
 
 @section scripts
 {

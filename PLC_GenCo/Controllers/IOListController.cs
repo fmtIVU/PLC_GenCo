@@ -2,6 +2,8 @@
 using PLC_GenCo.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Validation;
+using System.Diagnostics;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -21,19 +23,23 @@ namespace PLC_GenCo.Controllers
             _context.Dispose();
         }
 
-
+        //==========================================================================================================
+        //MAIN PAGE
         public ActionResult Index()
         {
 
             var viewModel = new IOListViewModel
             {
                 IOs = _context.IOs.ToList(),
-                Components = _context.Components.ToList()
+                Components = _context.Components.ToList(),
+                Standards = _context.Standards.ToList()
+
             };
 
             return View(viewModel);
         }
-
+        //==========================================================================================================
+        //Call form add/edit io
         public ActionResult IOForm(int id)
         {
 
@@ -46,12 +52,12 @@ namespace PLC_GenCo.Controllers
             {
                 IO = io,
                 IOLocations = _context.ComponentLocations.ToList(),
-                Parents = _context.Components.Where(c => c.IsParent == true)
+                Parents = _context.Components.Where(c => c.Depandancy == Enums.Dependancy.Parent)
             };
 
             return View("IOForm", viewModel);
         }
-
+        //Save new/edited IO
         [HttpPost]
         public ActionResult Save(IO io)
         {
@@ -62,302 +68,113 @@ namespace PLC_GenCo.Controllers
                 {
                     IO = io,
                     IOLocations = _context.ComponentLocations.ToList(),
-                    Parents = _context.Components.Where(c => c.IsParent == true)
+                    Parents = _context.Components.Where(c => c.Depandancy == Enums.Dependancy.Parent)
                 };
 
                 return View("IOForm", viewModel);
 
             }
-
+            //Component created by user -> set to match
             io.MatchStatus = Enums.MatchStatus.Match;
-            if (io.Id == 1)
+
+            if (String.IsNullOrEmpty(io.ParentName))
+            {
+                // UPDATE/ADD Single IOs Component
+                var componentInDb = _context.Components.SingleOrDefault(c => c.IOId == io.Id);
+
+                if (componentInDb == null)
+                {
+                    // Create single component
+
+                    var component = new Component();
+                    component.IOId = io.Id;
+                    component.Name = io.Name;
+                    component.Comment = io.Comment;
+                    component.Location = io.Location;
+                    component.Depandancy = Enums.Dependancy.Single;
+
+                    component.MatchStatus = Enums.MatchStatus.No_Match;
+
+
+                    _context.Components.Add(component);
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    //Update single component
+                    componentInDb.Comment = io.Comment;
+                    componentInDb.Location = io.Location;
+                    componentInDb.Name = io.Name;
+                }
+            }else
+            {
+                // Update/Add parent component
+                var componentInDb = _context.Components.SingleOrDefault(c => c.Name == io.ParentName);
+
+                if (componentInDb == null)
+                {
+                    // Create parent component
+
+                    var component = new Component();
+                    component.IOId = io.Id;
+                    component.Name = io.Name;
+                    component.Comment = io.Comment;
+                    component.Location = io.Location;
+                    component.Depandancy = Enums.Dependancy.Parent;
+
+                    component.MatchStatus = Enums.MatchStatus.No_Match;
+
+
+                    _context.Components.Add(component);
+                    _context.SaveChanges();
+                }
+
+            }
+            
+
+            //UPDATE/ADD IO 
+            var IOInDb = _context.IOs.SingleOrDefault(c => c.Id == io.Id);
+
+            if (IOInDb == null)
             {
                 _context.IOs.Add(io);
-                _context.Components.Add(new Component
-                {
-                    Name = io.Name,
-                    Comment = io.Comment,
-                    Location = io.Location,
-                    ConnectionType = io.ConnectionType,
-                    StandardComponent = io.Standard,
-                    IOId = io.Id
-
-                });
             }
             else
             {
-                var IOInDb = _context.IOs.SingleOrDefault(c => c.Id == io.Id);
-                
-                if (IOInDb == null)
-                {
-                    _context.IOs.Add(io);
-                }
-                else
-                {
-                    IOInDb.Name = io.Name;
-                    IOInDb.Comment = io.Comment;
-                    IOInDb.Location = io.Location;
-                    IOInDb.Parent = io.Parent;
-                    IOInDb.PLCAddress = io.PLCAddress;
-                    IOInDb.Standard = io.Standard;
-                    IOInDb.ConnectionType = io.ConnectionType;
-                    IOInDb.MatchStatus = io.MatchStatus;
-
-                }
-                var ComponentInDb = _context.Components.SingleOrDefault(c => c.IOId == io.Id);
-
-                if (ComponentInDb == null)
-                {
-                    _context.Components.Add(new Component
-                    {
-                        Name = io.Name,
-                        Comment = io.Comment,
-                        Location = io.Location,
-                        ConnectionType = io.ConnectionType,
-                        StandardComponent = io.Standard,
-                        IOId = io.Id
-
-                    });
-                }
-                else
-                {
-                    ComponentInDb.Name = io.Name;
-                    ComponentInDb.Comment = io.Comment;
-                    ComponentInDb.Location = io.Location;
-                    ComponentInDb.ConnectionType = io.ConnectionType;
-                    ComponentInDb.StandardComponent = io.Standard;
-                    ComponentInDb.IOId = io.Id;
-
-                }
+                IOInDb.Name = io.Name;
+                IOInDb.Comment = io.Comment;
+                IOInDb.Location = io.Location;
+                IOInDb.IOAddress = io.IOAddress;
+                IOInDb.ComponentId = io.ComponentId;
+                IOInDb.ConnectionType = io.ConnectionType;
+                IOInDb.MatchStatus = io.MatchStatus;
 
             }
             _context.SaveChanges();
 
-            return RedirectToAction("Index", "IOList");
-        }
-        //--------------------------------------------------------------------------------------------------------
-        public ActionResult MatchToStandards()
-        {
-            CreateParentComponents();
-            MatchIOToStandard();
-            return RedirectToAction("Index", "IOList");
-        }
+            //UPDATE IDs
+            var ioIDUpdate = _context.IOs.First(c => c.Name == io.Name);
+            var ComponentIDUpdate = new Component();
 
-        private void CreateParentComponents()
-        {
-            //Detect components with same name
-
-            foreach (var io in _context.IOs.ToList())
+            // Search for component when it is single/parent
+            if (String.IsNullOrEmpty(io.ParentName))
             {
-                if (_context.IOs.Where(c => c.Name == io.Name).Count() > 1  && !_context.Components.Any(c => c.Name == io.Name))
-                {
-                    var newComponent = new Component
-                    {
-                        Name = io.Name,
-                        Comment = io.Name,
-                        Location = io.Location,
-                        IsParent = true
-                    };
-
-                    if (io.ConnectionType == Enums.ConnectionType.ETH_AI ||
-                        io.ConnectionType == Enums.ConnectionType.ETH_DI ||
-                        io.ConnectionType == Enums.ConnectionType.ETH_AO ||
-                        io.ConnectionType == Enums.ConnectionType.ETH_DO || 
-                        ((_context.IOs.Any( c=> c.ConnectionType == Enums.ConnectionType.ETH_AI && c.Name == io.Name) ||
-                        _context.IOs.Any(c => c.ConnectionType == Enums.ConnectionType.ETH_DI && c.Name == io.Name) ||
-                        _context.IOs.Any(c => c.ConnectionType == Enums.ConnectionType.ETH_DO && c.Name == io.Name) ||
-                        _context.IOs.Any(c => c.ConnectionType == Enums.ConnectionType.ETH_AO && c.Name == io.Name))))
-                    {
-                        newComponent.ConnectionType = Enums.ConnectionType.ETH; 
-                    }
-                    else
-                    {
-                        newComponent.ConnectionType = Enums.ConnectionType.DIO;
-                    }
-                    _context.Components.Add(newComponent);
-                }
-
-                _context.SaveChanges();
+                ComponentIDUpdate = _context.Components.First(c => c.Name == io.Name);
+                //Update single components IO ID
+                ComponentIDUpdate.IOId = ioIDUpdate.Id;
+            }else
+            {
+                ComponentIDUpdate = _context.Components.First(c => c.Name == io.ParentName);
+                //Parent component has on IO ID because they are multiple
             }
-
-        }
-
-
-        private void MatchIOToStandard()
-        {
-
-            foreach (var io in _context.IOs.ToList())
-            {
-                var nameCount = _context.IOs.Where(c => c.Name == io.Name).Count();
             
 
-                switch (io.ConnectionType)
-                {
-                    case Enums.ConnectionType.AI:
-                        if ( nameCount > 1)
-                        {
-                            io.Standard = Enums.StandardComponent.C_AI;         //AI input is child compoonent
-                            io.Parent = _context.Components.Single(c => c.Name == io.Name).Id;
-                        }
-                        else
-                        {
-                            io.Standard = Enums.StandardComponent.AI_Alarm;     // AI input is Single component
-                            _context.Components.Add(new Component {
-                                Name = io.Name,
-                                Comment = io.Comment,
-                                Location = io.Location,
-                                ConnectionType = io.ConnectionType,
-                                StandardComponent = io.Standard,
-                                IOId = io.Id
-                                
-                            });
-                        }
-                        io.MatchStatus = Enums.MatchStatus.Match;
-                        _context.SaveChanges();
+            ioIDUpdate.ComponentId = ComponentIDUpdate.Id;
+            
 
-                        break;
-                    case Enums.ConnectionType.AO:
-                            io.Standard = Enums.StandardComponent.C_AO;         //AI input is child compoonent
-                            io.Parent = _context.Components.Single(c => c.Name == io.Name).Id;
-                            io.MatchStatus = Enums.MatchStatus.Match;
-                        break;
-                    case Enums.ConnectionType.DI:
-                        if (nameCount > 1)
-                        {
-                            io.Standard = Enums.StandardComponent.C_DI;         //DI is child compoonent
-                            io.Parent = _context.Components.Single(c => c.Name == io.Name).Id;
-                            io.MatchStatus = Enums.MatchStatus.Match;
-                        }
-                        else
-                        {
-                            io.Standard = Enums.StandardComponent.DI_Alarm;     // DI is Single component
-                            io.MatchStatus = Enums.MatchStatus.Check;
-                            _context.Components.Add(new Component
-                            {
-                                Name = io.Name,
-                                Comment = io.Comment,
-                                Location = io.Location,
-                                ConnectionType = io.ConnectionType,
-                                StandardComponent = io.Standard,
-                                IOId = io.Id
+            _context.SaveChanges();
 
-                            });
-                        }
-                        
-                        _context.SaveChanges();
-                        break;
-                    case Enums.ConnectionType.DO:
-                        if (nameCount > 1)
-                        {
-                            io.Standard = Enums.StandardComponent.C_DO;         //DO is child compoonent
-                            io.Parent = _context.Components.Single(c => c.Name == io.Name).Id;
-                        }
-                        else
-                        {
-                            io.Standard = Enums.StandardComponent.DO;           // DO is Single component
-                            _context.Components.Add(new Component
-                            {
-                                Name = io.Name,
-                                Comment = io.Comment,
-                                Location = io.Location,
-                                ConnectionType = io.ConnectionType,
-                                StandardComponent = io.Standard,
-                                IOId = io.Id
-
-                            });
-                        }
-                        io.MatchStatus = Enums.MatchStatus.Match;
-                        _context.SaveChanges();
-                        break;
-                    case Enums.ConnectionType.ETH:
-                        io.Parent = _context.Components.Single(c => c.Name == io.Name).Id;
-                        break;
-                    case Enums.ConnectionType.DIO:
-                        io.Parent = _context.Components.Single(c => c.Name == io.Name).Id;
-                        break;
-                    case Enums.ConnectionType.ETH_AI:
-                        if (nameCount > 1)
-                        {
-                            io.Standard = Enums.StandardComponent.C_AI;         //AI input is child compoonent
-                            io.Parent = _context.Components.Single(c => c.Name == io.Name).Id;
-                        }
-                        else
-                        {
-                            io.Standard = Enums.StandardComponent.AI_Alarm;     // AI input is Single component
-                            _context.Components.Add(new Component
-                            {
-                                Name = io.Name,
-                                Comment = io.Comment,
-                                Location = io.Location,
-                                ConnectionType = io.ConnectionType,
-                                StandardComponent = io.Standard,
-                                IOId = io.Id
-
-                            });
-                        }
-                        io.MatchStatus = Enums.MatchStatus.Match;
-                        _context.SaveChanges();
-
-                        break;
-                    case Enums.ConnectionType.ETH_DI:
-                        if (nameCount > 1)
-                        {
-                            io.Standard = Enums.StandardComponent.C_DI;         //AI input is child compoonent
-                            io.Parent = _context.Components.Single(c => c.Name == io.Name).Id;
-                        }
-                        else
-                        {
-                            io.Standard = Enums.StandardComponent.DI_Alarm;     // AI input is Single component
-                            _context.Components.Add(new Component
-                            {
-                                Name = io.Name,
-                                Comment = io.Comment,
-                                Location = io.Location,
-                                ConnectionType = io.ConnectionType,
-                                StandardComponent = io.Standard,
-                                IOId = io.Id
-
-                            });
-                        }
-                        io.MatchStatus = Enums.MatchStatus.Match;
-                        _context.SaveChanges();
-
-                        break;
-                    case Enums.ConnectionType.ETH_DO:
-                        if (nameCount > 1)
-                        {
-                            io.Standard = Enums.StandardComponent.C_DO;         //DO is child compoonent
-                            io.Parent = _context.Components.Single(c => c.Name == io.Name).Id;
-                        }
-                        else
-                        {
-                            io.Standard = Enums.StandardComponent.DO;           // DO is Single component
-                            _context.Components.Add(new Component
-                            {
-                                Name = io.Name,
-                                Comment = io.Comment,
-                                Location = io.Location,
-                                ConnectionType = io.ConnectionType,
-                                StandardComponent = io.Standard,
-                                IOId = io.Id
-
-                            });
-                        }
-                        io.MatchStatus = Enums.MatchStatus.Match;
-                        _context.SaveChanges();
-                        break;
-                    case Enums.ConnectionType.ETH_AO:
-                        io.Standard = Enums.StandardComponent.C_AO;         //AI input is child compoonent
-                        io.Parent = _context.Components.Single(c => c.Name == io.Name).Id;
-                        io.MatchStatus = Enums.MatchStatus.Match;
-                        break;
-
-                    default:
-                        throw new Exception("Matching: Unknown connection type");
-                    
-                }
-
-            }
+            return RedirectToAction("Index", "IOList");
         }
 
     }

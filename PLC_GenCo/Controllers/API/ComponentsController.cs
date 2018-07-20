@@ -51,7 +51,7 @@ namespace PLC_GenCo.Controllers.API
         }
 
         [HttpPut]
-        public Component UpdateComponent(int id, Component component)
+        public IHttpActionResult UpdateComponent(int id, Component component)
         {
             if (!ModelState.IsValid)
             {
@@ -65,13 +65,31 @@ namespace PLC_GenCo.Controllers.API
                 throw new HttpResponseException(HttpStatusCode.NotFound);
             }
 
+            
+
+            componentInDb.MatchStatus = Enums.MatchStatus.Match;
+
+
             componentInDb.Name = component.Name;
             componentInDb.Comment = component.Comment;
             componentInDb.Location = component.Location;
+            componentInDb.StandardId = component.StandardId;
+            componentInDb.ConnectionType = componentInDb.ConnectionType;
+            componentInDb.Depandancy = component.Depandancy;
+
+            var io = _context.IOs.FirstOrDefault(c => c.Id == componentInDb.IOId);
+
+            if (io != null)
+            {
+                io.MatchStatus = Enums.MatchStatus.Match;
+                io.ComponentId = componentInDb.Id;
+                io.ParentName = componentInDb.Name;
+            }
+
 
             _context.SaveChanges();
 
-            return component;
+            return Ok();
 
         }
 

@@ -9,6 +9,9 @@ namespace PLC_GenCo.ViewModels
     public class AddComponentFactoryViewModel
     {
         public IEnumerable<ComponentLocation> ComponentLocations { get; set; }
+        public IEnumerable<Standard> Standards { get; set; }
         public Component Component { get; set;}
+
+
     }
 }

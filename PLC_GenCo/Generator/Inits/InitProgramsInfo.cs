@@ -7,17 +7,17 @@ namespace PLC_GenCo.Generator.Inits
 {
     public class InitProgramsInfo
     {
-        public ProgramsInfo ProgramsInfo { get; }
+        public ProgramsInfo _programsInfo { get; }
 
         public InitProgramsInfo(ProgramsInfo programsInfo)
         {
-            ProgramsInfo = programsInfo;
+            _programsInfo = programsInfo;
         }
 
         public ProgramsInfo InitializedData()
         {
 
-            return new ProgramsInfo();
+            return _programsInfo;
         }
     }
 }

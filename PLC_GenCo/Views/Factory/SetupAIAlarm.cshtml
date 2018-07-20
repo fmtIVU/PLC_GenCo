@@ -11,7 +11,6 @@
 
 @using (Html.BeginForm("SaveAIAlarm", "Factory"))
 {
-
     <div id="AIAlarmSetup">
         <div id="AIAlarmSetup" style="display: inline-block; width:45% " align="left">
             <h3>Scale setup</h3>
@@ -33,37 +32,32 @@
 
         </div>
 
-        <div id="AIAlarmSetup" style="display: inline-block; width:45% ">
+        <div id="AIAlarmSetup" style="display: inline-block; width:54% ">
             <h3>Alarm setup</h3>
             <div class="form-group">
                 @Html.LabelFor(m => m.AIAlarmSetup.TimeDelay)
                 @Html.TextBoxFor(m => m.AIAlarmSetup.TimeDelay, new { @class = "form-control" })
                 @Html.ValidationMessageFor(m => m.AIAlarmSetup.TimeDelay)
             </div>
-            <div class=“checkbox” id="UseAlarmHigh">
-                @Html.CheckBoxFor(m => m.AIAlarmSetup.UseAlarmHigh)     Use alarm high?
+            <div class="form-group" id="AlarmHH">
+                @Html.LabelFor(m => m.AIAlarmSetup.AlarmHH)
+                @Html.TextBoxFor(m => m.AIAlarmSetup.AlarmHH, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(m => m.AIAlarmSetup.AlarmHH)
             </div>
-            <div class="form-group" id="AlarmHigh">
-                @Html.LabelFor(m => m.AIAlarmSetup.AlarmHigh)
-                @Html.TextBoxFor(m => m.AIAlarmSetup.AlarmHigh, new { @class = "form-control", type = "number", step = "0.01" })
-                @Html.ValidationMessageFor(m => m.AIAlarmSetup.AlarmHigh)
+            <div class="form-group" id="AlarmH">
+                @Html.LabelFor(m => m.AIAlarmSetup.AlarmH)
+                @Html.TextBoxFor(m => m.AIAlarmSetup.AlarmH, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(m => m.AIAlarmSetup.AlarmH)
             </div>
-            <div class=“checkbox” id="UseAlarmEqual">
-                @Html.CheckBoxFor(m => m.AIAlarmSetup.UseAlarmEqual)    Use alarm high?
+            <div class="form-group" id="AlarmL">
+                @Html.LabelFor(m => m.AIAlarmSetup.AlarmL)
+                @Html.TextBoxFor(m => m.AIAlarmSetup.AlarmL, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(m => m.AIAlarmSetup.AlarmL)
             </div>
-            <div class="form-group" id="AlarmEqual">
-                @Html.LabelFor(m => m.AIAlarmSetup.AlarmEqual)
-                @Html.TextBoxFor(m => m.AIAlarmSetup.AlarmEqual, new { @class = "form-control", type = "number", step = "0.01" })
-                @Html.ValidationMessageFor(m => m.AIAlarmSetup.AlarmEqual)
-            </div>
-            <div class=“checkbox” id="UseAlarmLow">
-                @Html.CheckBoxFor(m => m.AIAlarmSetup.UseAlarmLow)    Use alarm low?
-            </div>
-
-            <div class="form-group" id="AlarmLow">
-                @Html.LabelFor(m => m.AIAlarmSetup.AlarmLow)
-                @Html.TextBoxFor(m => m.AIAlarmSetup.AlarmLow, new { @class = "form-control", type = "number", step = "0.01" })
-                @Html.ValidationMessageFor(m => m.AIAlarmSetup.AlarmLow)
+            <div class="form-group" id="AlarmLL">
+                @Html.LabelFor(m => m.AIAlarmSetup.AlarmLL)
+                @Html.TextBoxFor(m => m.AIAlarmSetup.AlarmLL, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(m => m.AIAlarmSetup.AlarmLL)
             </div>
             
             
@@ -78,6 +72,8 @@
     @Html.HiddenFor(m => m.AIAlarmSetup.Id)
     @Html.HiddenFor(m => m.AIAlarmSetup.IdComponent)
     @Html.HiddenFor(m => m.AIAlarmSetup.IdIO)
+    @Html.HiddenFor(m => m.AIAlarmSetup.Comment)
+
 
     <div>
         <button type="submit" class="btn btn-primary">Save</button>
@@ -85,34 +81,46 @@
 
 
 }
+<p align="right">
+    <span style="display:inline-block; width: 20%;"></span>
+    <input type="button" value="Cancel" class="btn btn-light" onclick="@("window.location.href='" + @Url.Action("Index", "Factory") + "'");" />
+</p>
 
 @section scripts
 {
     <script>
         $(document).ready(function () {
-            $("#UseAlarmLow").change(function () {
+            $("#UseAlarmHH").change(function () {
                 if (!this.checked)
-                    $("#AlarmLow").fadeIn("slow");
+                    $("#AlarmHH").fadeIn("slow");
                 else
-                    $("#AlarmLow").fadeOut("slow");
+                    $("#AlarmHH").fadeOut("slow");
             });
         });
 
         $(document).ready(function () {
-            $("#UseAlarmEqual").change(function () {
+            $("#UseAlarmH").change(function () {
                 if (!this.checked)
-                    $("#AlarmEqual").fadeIn("slow");
+                    $("#AlarmH").fadeIn("slow");
                 else
-                    $("#AlarmEqual").fadeOut("slow");
+                    $("#AlarmH").fadeOut("slow");
             });
         });
 
         $(document).ready(function () {
-            $("#UseAlarmHigh").change(function () {
+            $("#UseAlarmL").change(function () {
                 if (!this.checked)
-                    $("#AlarmHigh").fadeIn("slow");
+                    $("#AlarmL").fadeIn("slow");
                 else
-                    $("#AlarmHigh").fadeOut("slow");
+                    $("#AlarmL").fadeOut("slow");
+            });
+        });
+        $(document).ready(function () {
+            $("#UseAlarmLL").change(function () {
+                if (!this.checked)
+                    $("#AlarmLL").fadeIn("slow");
+                else
+                    $("#AlarmLL").fadeOut("slow");
             });
         });
             

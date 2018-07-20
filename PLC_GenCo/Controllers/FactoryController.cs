@@ -26,40 +26,45 @@ namespace PLC_GenCo.Controllers
         {
             _context.Dispose();
         }
-        //------------------------------------------------------------------------------------------------------------------
-        //------------------------------------------------------------------------------------------------------------------
-        // GET: Factory/Index
-        // Load main page
+        //====================================================================================================================
+        // MAIN COMPONENT SETUP PAGE
         public ActionResult Index()
         {
 
             var viewModel = new FactoryViewModel
             {
-                Standards = _context.Standards.ToList(),
-                Components = _context.Components.ToList()
+                Components = _context.Components.ToList(),
+                IOs = _context.IOs.ToList(),
+                AIAlarms = _context.AIAlarms.ToList(),
+                DIAlarms = _context.DIAlarms.ToList(),
+                DIPulses = _context.DIpulses.ToList(),
+                MDirs = _context.MDirs.ToList(),
+                MRevs = _context.MRevs.ToList(),
+                MotFrqs = _context.MotFrqs.ToList(),
+                StdVlvs = _context.StdVlvs.ToList(),
+                Standnards = _context.Standards.ToList()
             };
 
             return View(viewModel);
         }
-        //------------------------------------------------------------------------------------------------------------------
-        //------------------------------------------------------------------------------------------------------------------
-        // Addcomponent
+        //====================================================================================================================
+        // ADD COMPONENT
         public ActionResult AddComponent()
         {
 
             var addComponentFactoryViewModel = new AddComponentFactoryViewModel()
             {
                 ComponentLocations = _context.ComponentLocations.ToList(),
-                
+                Standards = _context.Standards.ToList()
+
             };
 
             return View("ComponentForm", addComponentFactoryViewModel);
         }
-        //------------------------------------------------------------------------------------------------------------------
-        //------------------------------------------------------------------------------------------------------------------
-        // Save new or edited component
+        //====================================================================================================================
+        // SAVE NEW/EDITED COMPONENT
         [HttpPost]
-        public ActionResult Save (Component component)
+        public ActionResult Save(Component component)
         {
             if (!ModelState.IsValid && component.Id != 0 && component.ConnectionType != 0)
             {
@@ -67,13 +72,15 @@ namespace PLC_GenCo.Controllers
                 var viewModel = new AddComponentFactoryViewModel
                 {
                     Component = component,
+                    Standards = _context.Standards.ToList(),
                     ComponentLocations = _context.ComponentLocations.ToList(),
                 };
                 return View("ComponentForm", viewModel);
 
             }
 
-            component.ConnectionType = _context.Standards.Single(c => c.StandardComponent == component.StandardComponent).ConnectionType;
+            component.ConnectionType = _context.Standards.First(c => c.Id == component.StandardId).ConnectionType;
+            component.MatchStatus = Enums.MatchStatus.Match;
 
             if (component.Id == 1)
             {
@@ -82,7 +89,7 @@ namespace PLC_GenCo.Controllers
             else
             {
                 var componentInDb = _context.Components.SingleOrDefault(c => c.Id == component.Id);
-                if(componentInDb == null)
+                if (componentInDb == null)
                 {
                     _context.Components.Add(component);
                 }
@@ -91,28 +98,26 @@ namespace PLC_GenCo.Controllers
                     componentInDb.Name = component.Name;
                     componentInDb.Comment = component.Comment;
                     componentInDb.Location = component.Location;
-                    componentInDb.StandardComponent = component.StandardComponent;
-                    componentInDb.IsParent = component.IsParent;
+                    componentInDb.Depandancy = component.Depandancy;
                     componentInDb.IOId = component.IOId;
                     componentInDb.StandardId = component.StandardId;
+                    componentInDb.MatchStatus = component.MatchStatus;
+                    componentInDb.ConnectionType = component.ConnectionType;
                 }
 
             }
+            foreach (var io in _context.IOs.Where(c=>c.ComponentId == component.Id))
+            {
+                io.MatchStatus = Enums.MatchStatus.Match;
+            }
             _context.SaveChanges();
 
-            if (component.IsParent)
-            {
-                return RedirectToAction("Index", "IOList");
-            }
-            else
-            {
-                return RedirectToAction("Index", "Factory");
-            }
-            
+
+            return RedirectToAction("Index", "IOList");
+
         }
-        //------------------------------------------------------------------------------------------------------------------
-        //------------------------------------------------------------------------------------------------------------------
-        // Edit component
+        //====================================================================================================================
+        // EDIT COMPONENT
         public ActionResult Edit(int id)
         {
 
@@ -125,98 +130,37 @@ namespace PLC_GenCo.Controllers
             {
                 Component = component,
                 ComponentLocations = _context.ComponentLocations.ToList(),
+                Standards = _context.Standards.Where(c=>c.ConnectionType == component.ConnectionType)
             };
 
             return View("ComponentForm", viewModel);
         }
-        //------------------------------------------------------------------------------------------------------------------
-        //------------------------------------------------------------------------------------------------------------------
-        // Download components
-        public ActionResult Download()
-        {
-
-            var aoi = new XElement("AOI");
-
-            var uri = new System.Uri(@"C:\Users\Ivan\Desktop\OP generator PLC koda\StandardAOI\Analog");
-
-            aoi = XElement.Load(@"C:\Users\Ivan\Desktop\OP generator PLC koda\StandardAOI\Analog.L5X");
-            /*
-            var controllerInfo = new ControllerInfo();
-            var datatypesInfo = new DataTypesInfo();
-            datatypesInfo.components = _context.Components.ToList();
-            datatypesInfo.standards = _context.Standards.ToList();
-            datatypesInfo.locations = _context.ComponentLocations.ToList();
-            datatypesInfo.applyLocationFilter = false;
-
-            var modulesInfo = new ModulesInfo { modules = new List<Module>(), controller = new ControllerInfo()};
-            modulesInfo.controller.name = "Pumpestation PLC";
-            modulesInfo.controller.description = "Tavle PLC";
-
-            var module0 = new Module {ModuleId = 1, Name = "Rack 1 Embedded DIx16", IOModulesType = Enums.IOModulesType.EmbDIx16, Comments = new string[16] };
-            var module1 = new Module {ModuleId = 2, Name = "Rack 1 Embedded DOx16", IOModulesType = Enums.IOModulesType.EmbDOx16, Comments = new string[16] };
-            var module2 = new Module {ModuleId = 3, Name = "Rack 1 DIx4", IOModulesType = Enums.IOModulesType.DIx4, Comments = new string[4] };
-            var module3 = new Module {ModuleId = 4, Name = "Rack 1 AIx8", IOModulesType = Enums.IOModulesType.AIx8, Comments = new string[8] };
-            var module4 = new Module { ModuleId = 5, Name = "Rack 1 AIx4", IOModulesType = Enums.IOModulesType.AIx4, Comments = new string[4] };
-            var module5 = new Module { ModuleId = 6, Name = "Rack 1 DIx8", IOModulesType = Enums.IOModulesType.DIx8, Comments = new string[8] };
-            var module6 = new Module { ModuleId = 7, Name = "Rack 1 AOx4", IOModulesType = Enums.IOModulesType.AOx4, Comments = new string[4] };
-
-            modulesInfo.modules.Add(module0);
-            modulesInfo.modules.Add(module1);
-            modulesInfo.modules.Add(module2);
-            modulesInfo.modules.Add(module3);
-            modulesInfo.modules.Add(module4);
-            modulesInfo.modules.Add(module5);
-            modulesInfo.modules.Add(module6);
-
-
-
-
-            var globalTagsInfo = new GlobalTagsInfo();
-            var programsInfo = new ProgramsInfo();
-            var tasksInfo = new TasksInfo();
-            var addOnInstructionDefinitionsInfo = new AddOnInstructionDefinitionsInfo();
-
-
-
-            var generator = new ProjectGenerator(controllerInfo, datatypesInfo, modulesInfo, addOnInstructionDefinitionsInfo, globalTagsInfo, programsInfo, tasksInfo);
-
-
-            //Console.WriteLine(generator.GenerateProject());
-            // Create a file to write to.
-
-            string XMLVersion = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>";
-
-            string project = XMLVersion + Environment.NewLine + generator.GenerateProject().ToString();
-            */
-            Response.Clear();
-            Response.AddHeader("Content-Disposition", "attachment; filename=Project.xml");
-            Response.ContentType = "xml";
-
-            // Write all my data
-            //Response.Write(project);
-            Response.Write(aoi);
-            Response.End();
-
-            // Not sure what else to do here
-            return RedirectToAction("Index", "Factory");
-            //var generator = new Generator();
-            //byte[] fileBytes = System.IO.File.ReadAllBytes(@"C:/Users/Ivan/Desktop/OP generator PLC koda/generated_files/generatedfile.xml");
-            //string fileName = "generatedfile.xml";
-            //return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
-
-        }
+        //====================================================================================================================
+        //====================================================================================================================
+        //CALL COMPONENT SETUP - REDIRECTING
 
         public ActionResult Setup(int id)
         {
             var component = _context.Components.Single(c => c.Id == id);
-            
 
-            switch (component.StandardComponent)
+            //In case clicking before choosing standard
+            if (component.MatchStatus == Enums.MatchStatus.No_Match)
             {
-                case Enums.StandardComponent.No_Match:
-                    return Content("Select standard first!");
-                    
-                case Enums.StandardComponent.DI_Alarm:
+                return Content("Select standard first!");
+            }
+
+            //IN case clicking on No standard
+            if (!component.StandardId.HasValue)
+            {
+                return Content("No configuration for standard which doesn't exist :)");
+            }
+
+
+            var standard = _context.Standards.Single(c => c.Id == component.StandardId);
+
+            switch (standard.AOIName)
+            {
+                case ("AlarmDi"):
 
                     var DIAlarmSetupInDb = _context.DIAlarms.SingleOrDefault(c => c.IdComponent == id);
 
@@ -225,7 +169,7 @@ namespace PLC_GenCo.Controllers
                         Component = _context.Components.SingleOrDefault(c => c.Id == id),
                     };
 
-                    //IF its edit use existing one
+                    //IF it is edit use existing one
                     if (!(DIAlarmSetupInDb == null))
                     {
                         viewModelDIAlarm.DIAlarmSetup = DIAlarmSetupInDb;
@@ -235,13 +179,15 @@ namespace PLC_GenCo.Controllers
                         viewModelDIAlarm.DIAlarmSetup = new DIAlarmSetup
                         {
                             IdComponent = component.Id,
+                            IdIO = component.IOId,
+                            Comment = component.Comment
                         };
                     }
-                    
+
 
                     return View("SetupDIAlarm", viewModelDIAlarm);
-                    
-                case Enums.StandardComponent.DI_Pulse:
+                //==============================================================================================
+                case ("CNT"):
 
                     var DIPulseSetupInDb = _context.DIpulses.SingleOrDefault(c => c.IdComponent == id);
 
@@ -260,16 +206,14 @@ namespace PLC_GenCo.Controllers
                         viewModelDIPulse.DIPulseSetup = new DIPulseSetup
                         {
                             IdComponent = component.Id,
+                            IdIO = component.IOId
                         };
                     }
 
                     return View("SetupDIPulse", viewModelDIPulse);
-                    
-                    
-                case Enums.StandardComponent.DO:
-                    return Content("No available setup!");
-                   
-                case Enums.StandardComponent.AI_Alarm:
+
+                //=========================================================================================
+                case ("Analog"):
 
                     var AIAlarmSetupInDb = _context.AIAlarms.SingleOrDefault(c => c.IdComponent == id);
 
@@ -289,72 +233,175 @@ namespace PLC_GenCo.Controllers
                         {
                             IdComponent = component.Id,
                             IdIO = component.IOId,
+                            Comment = component.Comment
                         };
                     }
 
                     return View("SetupAIAlarm", viewModelAIAlarm);
-                   
-                case Enums.StandardComponent.P_Std_Motor_Dir:
+                //=================================================================================================
+                case ("MotorDir"):
 
-
-                    var MDirSetupInDb = _context.MDirs.Include("INMeasurement01").
-                                                      Include("INMeasurement02").
-                                                      Include("INMeasurement03").
-                                                      Include("INMeasurement04").
-                                                      Include("INMeasurement05").
-                                                      Include("INMeasurement06").SingleOrDefault(c => c.IdComponent == id);
-
-                    MDirSetupViewModel viewModelMDir = new MDirSetupViewModel
+                    if (standard.ConnectionType == Enums.ConnectionType.DIO)
                     {
-                        Component = _context.Components.SingleOrDefault(c => c.Id == id),
-                        Childs = _context.IOs.Where(c => c.Parent == component.Id).ToList()
-                    };
+                        var MDirSetupInDb = _context.MDirs.SingleOrDefault(c => c.IdComponent == id);
 
-                    //IF its edit use existing one
-                    if (!(MDirSetupInDb == null))
-                    {
-                        viewModelMDir.MDirSetup = MDirSetupInDb;
+                        MDirSetupViewModel viewModelMDir = new MDirSetupViewModel
+                        {
+                            Component = _context.Components.SingleOrDefault(c => c.Id == id),
+                            Childs = _context.IOs.Where(c => c.ComponentId == component.Id).ToList(),
+                            DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == component.Id).ToList(),
+                            AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == component.Id).ToList(),
+                            DIAlarm = new DIAlarmSetup(),
+                            AIAlarm = new AIAlarmSetup()
+                        };
+
+                        //IF its edit use existing one
+                        if (!(MDirSetupInDb == null))
+                        {
+                            viewModelMDir.MDirSetup = MDirSetupInDb;
+                        }
+                        else
+                        {
+                            viewModelMDir.MDirSetup = new MDirSetup
+                            {
+                                IdComponent = component.Id,
+                            };
+                        }
+
+                        return View("SetupMDir", viewModelMDir);
                     }
                     else
                     {
-                        viewModelMDir.MDirSetup = new MDirSetup
+                        var MotFrqSetupInDb = _context.MotFrqs.SingleOrDefault(c => c.IdComponent == id);
+
+                        MotFrqSetupViewModel viewModelMotFrq = new MotFrqSetupViewModel
+                        {
+                            Component = _context.Components.SingleOrDefault(c => c.Id == id),
+                            Childs = _context.IOs.Where(c => c.ComponentId == component.Id).ToList(),
+                            DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == component.Id).ToList(),
+                            AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == component.Id).ToList(),
+                            DIAlarm = new DIAlarmSetup(),
+                            AIAlarm = new AIAlarmSetup()
+                        };
+
+                        //IF its edit use existing one
+                        if (!(MotFrqSetupInDb == null))
+                        {
+                            viewModelMotFrq.MotFrqSetup = MotFrqSetupInDb;
+                        }
+                        else
+                        {
+                            viewModelMotFrq.MotFrqSetup = new MotFrqSetup
+                            {
+                                IdComponent = component.Id,
+                            };
+                        }
+
+                        return View("SetupMotFrq", viewModelMotFrq);
+                    }
+                    
+                //=====================================================================================================
+                
+                case ("MotorRev"):
+
+
+                    if (standard.ConnectionType == Enums.ConnectionType.DIO)
+                    {
+                        var MRevSetupInDb = _context.MRevs.SingleOrDefault(c => c.IdComponent == id);
+
+                        MRevSetupViewModel viewModelMRev = new MRevSetupViewModel
+                        {
+                            Component = _context.Components.SingleOrDefault(c => c.Id == id),
+                            Childs = _context.IOs.Where(c => c.ComponentId == component.Id).ToList(),
+                            DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == component.Id).ToList(),
+                            AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == component.Id).ToList(),
+                            DIAlarm = new DIAlarmSetup(),
+                            AIAlarm = new AIAlarmSetup()
+                        };
+
+                        //IF its edit use existing one
+                        if (!(MRevSetupInDb == null))
+                        {
+                            viewModelMRev.MRevSetup = MRevSetupInDb;
+                        }
+                        else
+                        {
+                            viewModelMRev.MRevSetup = new MRevSetup
+                            {
+                                IdComponent = component.Id,
+                            };
+                        }
+
+                        return View("SetupMRev", viewModelMRev);
+                    }else
+                    {
+                        var MotFrqSetupInDb = _context.MotFrqs.SingleOrDefault(c => c.IdComponent == id);
+
+                        MotFrqSetupViewModel viewModelMotFrq = new MotFrqSetupViewModel
+                        {
+                            Component = _context.Components.SingleOrDefault(c => c.Id == id),
+                            Childs = _context.IOs.Where(c => c.ComponentId == component.Id).ToList(),
+                            DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == component.Id).ToList(),
+                            AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == component.Id).ToList(),
+                            DIAlarm = new DIAlarmSetup(),
+                            AIAlarm = new AIAlarmSetup()
+                        };
+
+                        //IF its edit use existing one
+                        if (!(MotFrqSetupInDb == null))
+                        {
+                            viewModelMotFrq.MotFrqSetup = MotFrqSetupInDb;
+                        }
+                        else
+                        {
+                            viewModelMotFrq.MotFrqSetup = new MotFrqSetup
+                            {
+                                IdComponent = component.Id,
+                            };
+                        }
+
+                        return View("SetupMotFrq", viewModelMotFrq);
+                    }
+                        
+                //===============================================================================================
+                case ("ValveControl"):
+
+                    var StdVlvSetupInDb = _context.StdVlvs.SingleOrDefault(c => c.IdComponent == id);
+
+                    StdVlvSetupViewModel viewModelStdVlv = new StdVlvSetupViewModel
+                    {
+                        Component = _context.Components.SingleOrDefault(c => c.Id == id),
+                        Childs = _context.IOs.Where(c => c.ComponentId == component.Id).ToList(),
+                        DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == component.Id).ToList(),
+                        AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == component.Id).ToList(),
+                        DIAlarm = new DIAlarmSetup(),
+                        AIAlarm = new AIAlarmSetup()
+                    };
+
+                    //IF its edit use existing one
+                    if (!(StdVlvSetupInDb == null))
+                    {
+                        viewModelStdVlv.StdVlvSetup = StdVlvSetupInDb;
+                    }
+                    else
+                    {
+                        viewModelStdVlv.StdVlvSetup = new StdVlvSetup
                         {
                             IdComponent = component.Id,
                         };
                     }
 
-                    return View("SetupMDir", viewModelMDir);
-                 /*   
-                case Enums.StandardComponent.P_Std_Motor_Dir_Frq:
-                    return View("SetupStdMotorDirFrq", viewModel);
-                    
-                case Enums.StandardComponent.P_Std_Motor_Rev:
-                    return View("SetupStdMotorRev", viewModel);
-                    
-                case Enums.StandardComponent.P_Std_Motor_Rev_Frq:
-                    return View("SetupStdMotorRevFrq", viewModel);
-                    
-                case Enums.StandardComponent.P_Std_Valve:
-                    return View("SetupStdValve", viewModel);
-                    
-                case Enums.StandardComponent.C_AI:
-                    return Content("Setup as part of parent component!");
-                    
-                case Enums.StandardComponent.C_AO:
-                    return Content("Setup as part of parent component!");
-                    
-                case Enums.StandardComponent.C_DO:
-                    return Content("Setup as part of parent component!");
-                    
-                case Enums.StandardComponent.C_DI:
-                    return Content("Setup as part of parent component!");
-                 */
+                    return View("SetupStdVlv", viewModelStdVlv);
+
                 default:
                     return Content("Unknown standard!");
-                    
+
             }
 
         }
+
+        //====================================================================================================================
+        //SAVE COMPONENT SETUP
 
         public ActionResult SaveDIAlarm(DIAlarmSetup DIAlarmSetup)
         {
@@ -363,14 +410,14 @@ namespace PLC_GenCo.Controllers
 
                 var viewModel = new DIAlarmSetupViewModel
                 {
-                    Component = _context.Components.SingleOrDefault(c=> c.Id == DIAlarmSetup.IdComponent),
+                    Component = _context.Components.SingleOrDefault(c => c.Id == DIAlarmSetup.IdComponent),
                     DIAlarmSetup = DIAlarmSetup,
-                   
+
                 };
                 return View("SetupDIAlarm", viewModel);
 
             }
-            
+
             var DIAlarmInDb = _context.DIAlarms.SingleOrDefault(c => c.Id == DIAlarmSetup.Id);
 
             if (DIAlarmInDb == null)
@@ -380,13 +427,15 @@ namespace PLC_GenCo.Controllers
             else
             {
                 DIAlarmInDb.IdComponent = DIAlarmSetup.IdComponent;
+                DIAlarmInDb.Comment = DIAlarmSetup.Comment;
                 DIAlarmInDb.InputType = DIAlarmSetup.InputType;
                 DIAlarmInDb.TimeDelay = DIAlarmSetup.TimeDelay;
+                DIAlarmInDb.IdIO = DIAlarmSetup.IdIO;
             }
 
-        _context.SaveChanges();
-        
-        return RedirectToAction("Index", "Factory");
+            _context.SaveChanges();
+
+            return RedirectToAction("Index", "Factory");
         }
 
         public ActionResult SaveDIPulse(DIPulseSetup DIPulseSetup)
@@ -406,6 +455,7 @@ namespace PLC_GenCo.Controllers
 
             var DIPulseInDb = _context.DIpulses.SingleOrDefault(c => c.Id == DIPulseSetup.Id);
 
+
             if (DIPulseInDb == null)
             {
                 _context.DIpulses.Add(DIPulseSetup);
@@ -413,6 +463,8 @@ namespace PLC_GenCo.Controllers
             else
             {
                 DIPulseInDb.IdComponent = DIPulseSetup.IdComponent;
+                DIPulseInDb.IdIO = DIPulseSetup.IdIO;
+                DIPulseInDb.PulsesPerUnit = DIPulseSetup.PulsesPerUnit;
 
             }
 
@@ -445,17 +497,16 @@ namespace PLC_GenCo.Controllers
             else
             {
                 AIAlarmInDb.IdComponent = AIAlarmSetup.IdComponent;
+                AIAlarmInDb.Comment = AIAlarmSetup.Comment;
                 AIAlarmInDb.IdIO = AIAlarmSetup.IdIO;
                 AIAlarmInDb.AICType = AIAlarmSetup.AICType;
                 AIAlarmInDb.TimeDelay = AIAlarmSetup.TimeDelay;
                 AIAlarmInDb.ScaleMax = AIAlarmSetup.ScaleMax;
                 AIAlarmInDb.ScaleMin = AIAlarmSetup.ScaleMin;
-                AIAlarmInDb.AlarmHigh = AIAlarmSetup.AlarmHigh;
-                AIAlarmInDb.AlarmLow = AIAlarmSetup.AlarmLow;
-                AIAlarmInDb.AlarmEqual = AIAlarmSetup.AlarmEqual;
-                AIAlarmInDb.UseAlarmHigh = AIAlarmSetup.UseAlarmHigh;
-                AIAlarmInDb.UseAlarmLow = AIAlarmSetup.UseAlarmLow;
-                AIAlarmInDb.UseAlarmEqual = AIAlarmSetup.UseAlarmEqual;
+                AIAlarmInDb.AlarmHH = AIAlarmSetup.AlarmHH;
+                AIAlarmInDb.AlarmH = AIAlarmSetup.AlarmH;
+                AIAlarmInDb.AlarmL = AIAlarmSetup.AlarmL;
+                AIAlarmInDb.AlarmLL = AIAlarmSetup.AlarmLL;
             }
 
             _context.SaveChanges();
@@ -465,34 +516,24 @@ namespace PLC_GenCo.Controllers
 
         public ActionResult SaveMDir(MDirSetup MDirSetup)
         {
+
             if (!ModelState.IsValid && MDirSetup.Id != 0)
             {
 
-                var viewModel = new MDirSetupViewModel
+                var viewModelBAD = new MDirSetupViewModel
                 {
                     Component = _context.Components.SingleOrDefault(c => c.Id == MDirSetup.IdComponent),
                     MDirSetup = MDirSetup,
 
                 };
-                return View("SetupMDir", viewModel);
+                viewModelBAD.Childs = _context.IOs.Where(c => c.ComponentId == viewModelBAD.Component.Id).ToList();
+                viewModelBAD.DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == viewModelBAD.Component.Id).ToList();
+                viewModelBAD.AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == viewModelBAD.Component.Id).ToList();
+                return View("SetupMDir", viewModelBAD);
 
             }
 
-            var MDirInDb = _context.MDirs.Include("INMeasurement01").
-                                          Include("INMeasurement02").
-                                          Include("INMeasurement03").
-                                          Include("INMeasurement04").
-                                          Include("INMeasurement05").
-                                          Include("INMeasurement06").First(c => c.Id == MDirSetup.Id);
-
-
-            //All AIAlarmSetups belong to this parent component
-            MDirSetup.INMeasurement01.IdComponent = MDirSetup.IdComponent;
-            MDirSetup.INMeasurement02.IdComponent = MDirSetup.IdComponent;
-            MDirSetup.INMeasurement03.IdComponent = MDirSetup.IdComponent;
-            MDirSetup.INMeasurement04.IdComponent = MDirSetup.IdComponent;
-            MDirSetup.INMeasurement05.IdComponent = MDirSetup.IdComponent;
-            MDirSetup.INMeasurement06.IdComponent = MDirSetup.IdComponent;
+            var MDirInDb = _context.MDirs.FirstOrDefault(c => c.IdComponent == MDirSetup.IdComponent);
 
             if (MDirInDb == null)
             {
@@ -501,45 +542,194 @@ namespace PLC_GenCo.Controllers
             else
             {
                 MDirInDb.IdComponent = MDirSetup.IdComponent;
-                MDirInDb.INExtFault01 = MDirSetup.INExtFault01;
-                MDirInDb.INExtFault02 = MDirSetup.INExtFault02;
-                MDirInDb.INExtFault03 = MDirSetup.INExtFault03;
-                MDirInDb.INExtFault04 = MDirSetup.INExtFault04;
-                MDirInDb.INExtFault05 = MDirSetup.INExtFault05;
-                MDirInDb.INExtFault06 = MDirSetup.INExtFault06;
-                MDirInDb.INExtFault07 = MDirSetup.INExtFault07;
-                MDirInDb.INExtFault08 = MDirSetup.INExtFault08;
-
-                MDirInDb.InputType01 = MDirSetup.InputType01;
-                MDirInDb.InputType02 = MDirSetup.InputType02;
-                MDirInDb.InputType03 = MDirSetup.InputType03;
-                MDirInDb.InputType04 = MDirSetup.InputType04;
-                MDirInDb.InputType05 = MDirSetup.InputType05;
-                MDirInDb.InputType06 = MDirSetup.InputType06;
-                MDirInDb.InputType07 = MDirSetup.InputType07;
-                MDirInDb.InputType08 = MDirSetup.InputType08;
-
                 MDirInDb.INRunningFB = MDirSetup.INRunningFB;
-
                 MDirInDb.OUTResetSignal = MDirSetup.OUTResetSignal;
                 MDirInDb.OUTStartSignal = MDirSetup.OUTStartSignal;
-
-
-                MDirInDb.INMeasurement01 = MDirSetup.INMeasurement01;
-                MDirInDb.INMeasurement02 = MDirSetup.INMeasurement02;
-                MDirInDb.INMeasurement03 = MDirSetup.INMeasurement03;
-                MDirInDb.INMeasurement04 = MDirSetup.INMeasurement04;
-                MDirInDb.INMeasurement05 = MDirSetup.INMeasurement05;
-                MDirInDb.INMeasurement06 = MDirSetup.INMeasurement06;
-
-
             }
 
             _context.SaveChanges();
 
-            return RedirectToAction("Index", "Factory");
+            //Init viewmodel data
+            var viewModelOK = new MDirSetupViewModel
+            {
+                Component = _context.Components.SingleOrDefault(c => c.Id == MDirSetup.IdComponent),
+                MDirSetup = MDirSetup,
+                DIAlarm = new DIAlarmSetup(),
+                AIAlarm = new AIAlarmSetup(),
+
+            };
+
+            viewModelOK.Childs = _context.IOs.Where(c => c.ComponentId == viewModelOK.Component.Id).ToList();
+            viewModelOK.DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == viewModelOK.Component.Id).ToList();
+            viewModelOK.AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == viewModelOK.Component.Id).ToList();
+
+            return View("SetupMDir", viewModelOK);
         }
 
-        
+        public ActionResult SaveMotFrq(MotFrqSetup MotFrqSetup)
+        {
+            if (!ModelState.IsValid && MotFrqSetup.Id != 0)
+            {
+
+                var viewModelBAD = new MotFrqSetupViewModel
+                {
+                    Component = _context.Components.SingleOrDefault(c => c.Id == MotFrqSetup.IdComponent),
+                    MotFrqSetup = MotFrqSetup,
+                    
+
+                };
+                viewModelBAD.Childs = _context.IOs.Where(c => c.ComponentId == viewModelBAD.Component.Id).ToList();
+                viewModelBAD.DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == viewModelBAD.Component.Id).ToList();
+                viewModelBAD.AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == viewModelBAD.Component.Id).ToList();
+
+                return View("SetupMotFrq", viewModelBAD);
+
+            }
+
+            var MotFrqInDb = _context.MotFrqs.FirstOrDefault(c => c.IdComponent == MotFrqSetup.IdComponent);
+
+            if (MotFrqInDb == null)
+            {
+                _context.MotFrqs.Add(MotFrqSetup);
+            }
+            else
+            {
+                MotFrqInDb.IdComponent = MotFrqSetup.IdComponent;
+                MotFrqInDb.FrqType = MotFrqSetup.FrqType;
+                MotFrqInDb.IPAddress = MotFrqSetup.IPAddress;
+                MotFrqInDb.NominalSpeed = MotFrqSetup.NominalSpeed;
+            }
+
+
+
+            _context.SaveChanges();
+
+            //Init viewmodel data
+            var viewModelOK = new MotFrqSetupViewModel
+            {
+                Component = _context.Components.SingleOrDefault(c => c.Id == MotFrqSetup.IdComponent),
+                MotFrqSetup = MotFrqSetup,
+                DIAlarm = new DIAlarmSetup(),
+                AIAlarm = new AIAlarmSetup()
+
+            };
+            viewModelOK.Childs = _context.IOs.Where(c => c.ComponentId == viewModelOK.Component.Id).ToList();
+            viewModelOK.DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == viewModelOK.Component.Id).ToList();
+            viewModelOK.AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == viewModelOK.Component.Id).ToList();
+
+            return View("SetupMotFrq", viewModelOK);
+
+        }
+
+        public ActionResult SaveMRev(MRevSetup MRevSetup)
+        {
+
+            if (!ModelState.IsValid && MRevSetup.Id != 0)
+            {
+
+                var viewModelBAD = new MRevSetupViewModel
+                {
+                    Component = _context.Components.SingleOrDefault(c => c.Id == MRevSetup.IdComponent),
+                    MRevSetup = MRevSetup,
+
+                };
+                viewModelBAD.Childs = _context.IOs.Where(c => c.ComponentId == viewModelBAD.Component.Id).ToList();
+                viewModelBAD.DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == viewModelBAD.Component.Id).ToList();
+                viewModelBAD.AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == viewModelBAD.Component.Id).ToList();
+                return View("SetupMRev", viewModelBAD);
+
+            }
+
+            var MRevInDb = _context.MRevs.FirstOrDefault(c => c.IdComponent == MRevSetup.IdComponent);
+
+            if (MRevInDb == null)
+            {
+                _context.MRevs.Add(MRevSetup);
+            }
+            else
+            {
+                MRevInDb.IdComponent = MRevSetup.IdComponent;
+                MRevInDb.INRunningFBFW = MRevSetup.INRunningFBFW;
+                MRevInDb.INRunningFBBW = MRevSetup.INRunningFBBW;
+                MRevInDb.OUTResetSignal = MRevSetup.OUTResetSignal;
+                MRevInDb.OUTStartSignalFW = MRevSetup.OUTStartSignalFW;
+                MRevInDb.OUTStartSignalBW = MRevSetup.OUTStartSignalBW;
+            }
+
+            _context.SaveChanges();
+
+            //Init viewmodel data
+            var viewModelOK = new MRevSetupViewModel
+            {
+                Component = _context.Components.SingleOrDefault(c => c.Id == MRevSetup.IdComponent),
+                MRevSetup = MRevSetup,
+                DIAlarm = new DIAlarmSetup(),
+                AIAlarm = new AIAlarmSetup(),
+
+            };
+
+            viewModelOK.Childs = _context.IOs.Where(c => c.ComponentId == viewModelOK.Component.Id).ToList();
+            viewModelOK.DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == viewModelOK.Component.Id).ToList();
+            viewModelOK.AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == viewModelOK.Component.Id).ToList();
+
+            return View("SetupMRev", viewModelOK);
+
+        }
+
+        public ActionResult SaveStdVlv(StdVlvSetup StdVlvSetup)
+        {
+
+            if (!ModelState.IsValid && StdVlvSetup.Id != 0)
+            {
+
+                var viewModelBAD = new StdVlvSetupViewModel
+                {
+                    Component = _context.Components.SingleOrDefault(c => c.Id == StdVlvSetup.IdComponent),
+                    StdVlvSetup = StdVlvSetup,
+
+                };
+                viewModelBAD.Childs = _context.IOs.Where(c => c.ComponentId == viewModelBAD.Component.Id).ToList();
+                viewModelBAD.DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == viewModelBAD.Component.Id).ToList();
+                viewModelBAD.AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == viewModelBAD.Component.Id).ToList();
+                return View("SetupStdVlv", viewModelBAD);
+
+            }
+
+            var StdVlvInDb = _context.StdVlvs.FirstOrDefault(c => c.IdComponent == StdVlvSetup.IdComponent);
+
+            if (StdVlvInDb == null)
+            {
+                _context.StdVlvs.Add(StdVlvSetup);
+            }
+            else
+            {
+                StdVlvInDb.IdComponent = StdVlvSetup.IdComponent;
+                StdVlvInDb.INClosedFB = StdVlvSetup.INClosedFB;
+                StdVlvInDb.INOpenedFB = StdVlvSetup.INOpenedFB;
+                StdVlvInDb.OUTResetSignal = StdVlvSetup.OUTResetSignal;
+                StdVlvInDb.OUTOpenSignal = StdVlvSetup.OUTOpenSignal;
+                StdVlvInDb.OUTCloseSignal = StdVlvSetup.OUTCloseSignal;
+            }
+
+            _context.SaveChanges();
+
+            //Init viewmodel data
+            var viewModelOK = new StdVlvSetupViewModel
+            {
+                Component = _context.Components.SingleOrDefault(c => c.Id == StdVlvSetup.IdComponent),
+                StdVlvSetup = StdVlvSetup,
+                DIAlarm = new DIAlarmSetup(),
+                AIAlarm = new AIAlarmSetup(),
+
+            };
+
+            viewModelOK.Childs = _context.IOs.Where(c => c.ComponentId == viewModelOK.Component.Id).ToList();
+            viewModelOK.DIAlarms = _context.DIAlarms.Where(c => c.IdComponent == viewModelOK.Component.Id).ToList();
+            viewModelOK.AIAlarms = _context.AIAlarms.Where(c => c.IdComponent == viewModelOK.Component.Id).ToList();
+
+            return View("SetupStdVlv", viewModelOK);
+        }
+        //====================================================================================================================
+
     }
 }

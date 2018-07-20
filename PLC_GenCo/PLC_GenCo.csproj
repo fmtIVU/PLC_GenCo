@@ -209,9 +209,13 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\API\IOsController.cs" />
+    <Compile Include="Controllers\API\DIAlarmSetupsController.cs" />
+    <Compile Include="Controllers\API\AIAlarmSetupsController.cs" />
     <Compile Include="Controllers\API\ComponentsController.cs" />
     <Compile Include="Controllers\API\ModulesController.cs" />
     <Compile Include="Controllers\API\LocationsController.cs" />
+    <Compile Include="Controllers\ExportController.cs" />
     <Compile Include="Controllers\FactoryController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\HWConfController.cs" />
@@ -219,18 +223,22 @@
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\StandardsController.cs" />
     <Compile Include="Generator\Data.cs" />
-    <Compile Include="Generator\AddOnInstructionDefinitions.cs" />
+    <Compile Include="Generator\GenerateAddOnInstructionDefinitions.cs" />
     <Compile Include="Generator\GenerateDataTypes.cs" />
     <Compile Include="Generator\GenerateModules.cs" />
+    <Compile Include="Generator\GeneratePrograms.cs" />
+    <Compile Include="Generator\GenerateTags.cs" />
+    <Compile Include="Generator\GenerateTasks.cs" />
     <Compile Include="Generator\ProjectGenerator.cs" />
     <Compile Include="Generator\Inits\InitAddOnInstructionDefinitionsInfo.cs" />
     <Compile Include="Generator\Inits\InitControllerInfo.cs" />
     <Compile Include="Generator\Inits\InitDataTypesInfo.cs" />
-    <Compile Include="Generator\Inits\InitGlobalTagsInfo.cs" />
+    <Compile Include="Generator\Inits\InitTagsInfo.cs" />
     <Compile Include="Generator\Inits\InitModulesInfo.cs" />
     <Compile Include="Generator\Inits\InitProgramsInfo.cs" />
     <Compile Include="Generator\Inits\InitTasksInfo.cs" />
     <Compile Include="Generator\Structures.cs" />
+    <Compile Include="Generator\UploadRoutine.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -370,23 +378,114 @@
     <Compile Include="Migrations\201807030837386_AIAlarmSetupNullableV2.Designer.cs">
       <DependentUpon>201807030837386_AIAlarmSetupNullableV2.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201807031154157_V2.cs" />
+    <Compile Include="Migrations\201807031154157_V2.Designer.cs">
+      <DependentUpon>201807031154157_V2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807040716177_addMotFrqV0.cs" />
+    <Compile Include="Migrations\201807040716177_addMotFrqV0.Designer.cs">
+      <DependentUpon>201807040716177_addMotFrqV0.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807040732261_addMRevV0.cs" />
+    <Compile Include="Migrations\201807040732261_addMRevV0.Designer.cs">
+      <DependentUpon>201807040732261_addMRevV0.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807040804351_addStdVlvV0.cs" />
+    <Compile Include="Migrations\201807040804351_addStdVlvV0.Designer.cs">
+      <DependentUpon>201807040804351_addStdVlvV0.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807040953096_updateNullables.cs" />
+    <Compile Include="Migrations\201807040953096_updateNullables.Designer.cs">
+      <DependentUpon>201807040953096_updateNullables.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807060748071_updateStandardModel.cs" />
+    <Compile Include="Migrations\201807060748071_updateStandardModel.Designer.cs">
+      <DependentUpon>201807060748071_updateStandardModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807061146259_MAJORupdateV1.cs" />
+    <Compile Include="Migrations\201807061146259_MAJORupdateV1.Designer.cs">
+      <DependentUpon>201807061146259_MAJORupdateV1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807061452382_addNullableToCompAndIO.cs" />
+    <Compile Include="Migrations\201807061452382_addNullableToCompAndIO.Designer.cs">
+      <DependentUpon>201807061452382_addNullableToCompAndIO.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807091817127_updateIOParentName.cs" />
+    <Compile Include="Migrations\201807091817127_updateIOParentName.Designer.cs">
+      <DependentUpon>201807091817127_updateIOParentName.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807110640088_updateDIpulseIDIO.cs" />
+    <Compile Include="Migrations\201807110640088_updateDIpulseIDIO.Designer.cs">
+      <DependentUpon>201807110640088_updateDIpulseIDIO.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807111035249_updateModelAddress.cs" />
+    <Compile Include="Migrations\201807111035249_updateModelAddress.Designer.cs">
+      <DependentUpon>201807111035249_updateModelAddress.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807121343485_updateAIAlarmSetupIDIONullable.cs" />
+    <Compile Include="Migrations\201807121343485_updateAIAlarmSetupIDIONullable.Designer.cs">
+      <DependentUpon>201807121343485_updateAIAlarmSetupIDIONullable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807130642579_updateAIAlarmSetup.cs" />
+    <Compile Include="Migrations\201807130642579_updateAIAlarmSetup.Designer.cs">
+      <DependentUpon>201807130642579_updateAIAlarmSetup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807131036346_updateAIAlarmSetup_UseOUT.cs" />
+    <Compile Include="Migrations\201807131036346_updateAIAlarmSetup_UseOUT.Designer.cs">
+      <DependentUpon>201807131036346_updateAIAlarmSetup_UseOUT.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807180906445_PREupdateGenericStdV01.cs" />
+    <Compile Include="Migrations\201807180906445_PREupdateGenericStdV01.Designer.cs">
+      <DependentUpon>201807180906445_PREupdateGenericStdV01.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807180917555_addStandardGroup.cs" />
+    <Compile Include="Migrations\201807180917555_addStandardGroup.Designer.cs">
+      <DependentUpon>201807180917555_addStandardGroup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807180919100_addGroupToStandard.cs" />
+    <Compile Include="Migrations\201807180919100_addGroupToStandard.Designer.cs">
+      <DependentUpon>201807180919100_addGroupToStandard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807190813282_addDescriptionToStandard.cs" />
+    <Compile Include="Migrations\201807190813282_addDescriptionToStandard.Designer.cs">
+      <DependentUpon>201807190813282_addDescriptionToStandard.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ComponentLocation.cs" />
     <Compile Include="Models\PLC.cs" />
     <Compile Include="Models\IO.cs" />
     <Compile Include="Models\Module.cs" />
-    <Compile Include="Models\PLCAddress.cs" />
+    <Compile Include="Models\IOAddress.cs" />
     <Compile Include="Models\Setups\AIAlarmSetup.cs" />
     <Compile Include="Models\Setups\DIAlarmSetup.cs" />
     <Compile Include="Models\Setups\DIPulseSetup.cs" />
+    <Compile Include="Models\Setups\StdVlvSetup.cs" />
+    <Compile Include="Models\Setups\MRevSetup.cs" />
+    <Compile Include="Models\Setups\MotFrqSetup.cs" />
     <Compile Include="Models\Setups\MDirSetup.cs" />
+    <Compile Include="Models\StandardGroup.cs" />
+    <Compile Include="Models\Tag.cs" />
+    <Compile Include="Models\Program.cs" />
+    <Compile Include="Models\Routine.cs" />
+    <Compile Include="Models\Task.cs" />
+    <Compile Include="Models\UDT.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\DuplicateViewModel.cs" />
     <Compile Include="ViewModels\EditIOIOListViewModel.cs" />
+    <Compile Include="ViewModels\ExportViewModel.cs" />
+    <Compile Include="ViewModels\Setups\StdVlvSetupViewModel.cs" />
+    <Compile Include="ViewModels\Setups\MRevSetupViewModel.cs" />
+    <Compile Include="ViewModels\Setups\MotFrqSetupViewModel.cs" />
     <Compile Include="ViewModels\Setups\MDirSetupViewModel.cs" />
     <Compile Include="ViewModels\Setups\AIAlarmSetupViewModel.cs" />
     <Compile Include="ViewModels\Setups\DIPulseSetupViewModel.cs" />
     <Compile Include="ViewModels\Setups\DIAlarmSetupViewModel.cs" />
-    <Compile Include="Views\Factory\Standard.cs" />
+    <Compile Include="Models\Standard.cs" />
     <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
@@ -517,6 +616,9 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <None Include="Resources\tick.ico" />
+    <None Include="Resources\delete.png" />
+    <None Include="Resources\approve.png" />
     <Content Include="Scripts\bootbox.js" />
     <Content Include="Scripts\bootbox.min.js" />
     <Content Include="Scripts\bootstrap.js" />
@@ -652,7 +754,11 @@
     <Content Include="Views\Factory\SetupDIPulse.cshtml" />
     <Content Include="Views\Factory\SetupDIAlarm.cshtml" />
     <Content Include="Views\Factory\SetupAIAlarm.cshtml" />
+    <Content Include="Views\Factory\SetupMRev.cshtml" />
+    <Content Include="Views\Factory\SetupMotFrq.cshtml" />
     <Content Include="Views\Factory\SetupMDir.cshtml" />
+    <Content Include="Views\Factory\SetupStdVlv.cshtml" />
+    <Content Include="Views\Export\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -767,6 +873,64 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201807030837386_AIAlarmSetupNullableV2.resx">
       <DependentUpon>201807030837386_AIAlarmSetupNullableV2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807031154157_V2.resx">
+      <DependentUpon>201807031154157_V2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807040716177_addMotFrqV0.resx">
+      <DependentUpon>201807040716177_addMotFrqV0.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807040732261_addMRevV0.resx">
+      <DependentUpon>201807040732261_addMRevV0.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807040804351_addStdVlvV0.resx">
+      <DependentUpon>201807040804351_addStdVlvV0.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807040953096_updateNullables.resx">
+      <DependentUpon>201807040953096_updateNullables.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807060748071_updateStandardModel.resx">
+      <DependentUpon>201807060748071_updateStandardModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807061146259_MAJORupdateV1.resx">
+      <DependentUpon>201807061146259_MAJORupdateV1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807061452382_addNullableToCompAndIO.resx">
+      <DependentUpon>201807061452382_addNullableToCompAndIO.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807091817127_updateIOParentName.resx">
+      <DependentUpon>201807091817127_updateIOParentName.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807110640088_updateDIpulseIDIO.resx">
+      <DependentUpon>201807110640088_updateDIpulseIDIO.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807111035249_updateModelAddress.resx">
+      <DependentUpon>201807111035249_updateModelAddress.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807121343485_updateAIAlarmSetupIDIONullable.resx">
+      <DependentUpon>201807121343485_updateAIAlarmSetupIDIONullable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807130642579_updateAIAlarmSetup.resx">
+      <DependentUpon>201807130642579_updateAIAlarmSetup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807131036346_updateAIAlarmSetup_UseOUT.resx">
+      <DependentUpon>201807131036346_updateAIAlarmSetup_UseOUT.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807180906445_PREupdateGenericStdV01.resx">
+      <DependentUpon>201807180906445_PREupdateGenericStdV01.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807180917555_addStandardGroup.resx">
+      <DependentUpon>201807180917555_addStandardGroup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807180919100_addGroupToStandard.resx">
+      <DependentUpon>201807180919100_addGroupToStandard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807190813282_addDescriptionToStandard.resx">
+      <DependentUpon>201807190813282_addDescriptionToStandard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

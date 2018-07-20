@@ -12,6 +12,7 @@ namespace PLC_GenCo.Models.Setups
         public int Id { get; set; }
         public int IdComponent { get; set; }
         public int? IdIO { get; set; }
+        public string Comment { get; set; }
         public AICType AICType { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:n2}", ApplyFormatInEditMode = true)]
@@ -23,16 +24,16 @@ namespace PLC_GenCo.Models.Setups
         public int? TimeDelay { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:n2}", ApplyFormatInEditMode = true)]
-        public float? AlarmHigh { get; set; }
-        public bool UseAlarmHigh { get; set; }
+        public float? AlarmHH { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:n2}", ApplyFormatInEditMode = true)]
-        public float? AlarmEqual { get; set; }
-        public bool UseAlarmEqual { get; set; }
+        public float? AlarmH { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:n2}", ApplyFormatInEditMode = true)]
-        public float? AlarmLow { get; set; }
-        public bool UseAlarmLow { get; set; }
+        public float? AlarmL { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:n2}", ApplyFormatInEditMode = true)]
+        public float? AlarmLL { get; set; }
 
 
     }
