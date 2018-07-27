@@ -1,6 +1,8 @@
-﻿using PLC_GenCo.Generator;
+﻿using Microsoft.AspNet.Identity;
+using PLC_GenCo.Generator;
 using PLC_GenCo.Models;
 using PLC_GenCo.ViewModels;
+using PLC_GenCo.XMLDB;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,11 +28,24 @@ namespace PLC_GenCo.Controllers
         // GET: Export
         public ActionResult Index()
         {
-                 
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            String pageName;
+
+            if (String.IsNullOrEmpty(userName))
+            {
+                pageName = "";
+            }
+            else
+            {
+                pageName = _context.Users.First(c => c.Name == userName).ActProject;
+            }
+
             var viewModel = new ExportViewModel
             {
-                Controller = _context.PLC.First(),
-                Modules = _context.Modules.ToList(),
+                Controller = xmlDB.PLC,
+                Modules = xmlDB.Modules,
                 UDTs = new List<UDT>(),
                 AOIs = new List<Standard>(),
                 Tags = new List<Tag>(),
@@ -97,7 +112,7 @@ namespace PLC_GenCo.Controllers
                 }
 
                 String name = aoi.Attribute("Name").Value;
-                addStandard.Group = _context.Standards.First(c => c.AOIName == name).Group;
+                addStandard.Group = xmlDB.Standards.First(c => c.AOIName == name).Group;
 
                 viewModel.AOIs.Add(addStandard);
 
@@ -201,33 +216,47 @@ namespace PLC_GenCo.Controllers
 
         private XElement Generate()
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            String pageName;
+
+            if (String.IsNullOrEmpty(userName))
+            {
+                pageName = "";
+            }
+            else
+            {
+                pageName = _context.Users.First(c => c.Name == userName).ActProject;
+            }
+
             var controllerInfo = new ControllerInfo();
             var datatypesInfo = new DataTypesInfo
             {
-                Components = _context.Components.ToList(),
-                Standards = _context.Standards.ToList(),
-                Locations = _context.ComponentLocations.ToList(),
-                IOs = _context.IOs.ToList(),
-                DIPulseSetups = _context.DIpulses.ToList(),
-                Modules = _context.Modules.ToList(),
-                MotFrqSetups = _context.MotFrqs.ToList(),
-                DIAlarmSetups = _context.DIAlarms.ToList(),
-                AIAlarmSetups = _context.AIAlarms.ToList(),
+                Components = xmlDB.Components.ToList(),
+                Standards = xmlDB.Standards.ToList(),
+                Locations = xmlDB.Locations.ToList(),
+                IOs = xmlDB.IOs.ToList(),
+                //DIPulseSetups = _context.DIpulses.ToList(),
+                Modules = xmlDB.Modules.ToList(),
+                //MotFrqSetups = _context.MotFrqs.ToList(),
+                //DIAlarmSetups = _context.DIAlarms.ToList(),
+                //AIAlarmSetups = _context.AIAlarms.ToList(),
                 ApplyLocationFilter = false
 
             };
 
             var modulesInfo = new ModulesInfo
             {
-                modules = _context.Modules.ToList(),
+                modules = xmlDB.Modules.ToList(),
                 controller = new ControllerInfo
                 {
                     name = "StdPLC",
                     description = "Standard controller"                   //TODO From database
                 },
-                IOs = _context.IOs.ToList(),
-                Components = _context.Components.ToList(),
-                MotFrqSetups = _context.MotFrqs.ToList()
+                IOs = xmlDB.IOs.ToList(),
+                Components = xmlDB.Components.ToList(),
+                //MotFrqSetups = xmlDB.MotFrqs.ToList()
 
             };
 
@@ -235,24 +264,24 @@ namespace PLC_GenCo.Controllers
 
             var programsInfo = new ProgramsInfo
             {
-                IOs = _context.IOs.ToList(),
-                Modules = _context.Modules.ToList(),
-                AIAlarmSetups = _context.AIAlarms.ToList(),
-                DIAlarmSetups = _context.DIAlarms.ToList(),
-                DIPulseSetups = _context.DIpulses.ToList(),
-                MDirSetups = _context.MDirs.ToList(),
-                MRevSetups = _context.MRevs.ToList(),
-                MotFrqSetups = _context.MotFrqs.ToList(),
-                StdVlvSetups = _context.StdVlvs.ToList(),
-                Components = _context.Components.ToList()
+                IOs = xmlDB.IOs.ToList(),
+                Modules = xmlDB.Modules.ToList(),
+                //AIAlarmSetups = xmlDB.AIAlarms.ToList(),
+                //DIAlarmSetups = xmlDB.DIAlarms.ToList(),
+                //DIPulseSetups = xmlDB.DIpulses.ToList(),
+                //MDirSetups = xmlDB.MDirs.ToList(),
+                //MRevSetups = xmlDB.MRevs.ToList(),
+                //MotFrqSetups = xmlDB.MotFrqs.ToList(),
+                //StdVlvSetups = xmlDB.StdVlvs.ToList(),
+                Components = xmlDB.Components.ToList()
 
             };
 
             var tasksInfo = new TasksInfo();
             var addOnInstructionDefinitionsInfo = new AddOnInstructionDefinitionsInfo
             {
-                Components = _context.Components.ToList(),
-                Standards = _context.Standards.ToList()
+                Components = xmlDB.Components.ToList(),
+                Standards = xmlDB.Standards.ToList()
 
             };
 

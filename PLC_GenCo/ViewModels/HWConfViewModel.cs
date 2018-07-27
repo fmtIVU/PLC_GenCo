@@ -6,7 +6,7 @@ using System.Web;
 
 namespace PLC_GenCo.ViewModels
 {
-    public class HWConfViewModel
+    public class HWConfViewModel : BaseViewModel
     {
         public List<Module> Modules { get; set; }
         public List<ComponentLocation> Locations { get; set; }

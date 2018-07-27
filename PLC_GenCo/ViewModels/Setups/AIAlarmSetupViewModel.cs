@@ -6,7 +6,7 @@ using System.Web;
 
 namespace PLC_GenCo.ViewModels.Setups
 {
-    public class AIAlarmSetupViewModel
+    public class AIAlarmSetupViewModel : BaseViewModel
     {
         public AIAlarmSetup AIAlarmSetup { get; set; }
         public Component Component { get; set; }

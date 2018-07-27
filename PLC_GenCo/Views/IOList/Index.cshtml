@@ -38,7 +38,7 @@ else
 
                 if (parent != null)
                 {
-                    if (!String.IsNullOrEmpty(io.ParentName))
+                    if (!String.IsNullOrWhiteSpace(io.ParentName))
                     {
                         parentName = io.ParentName;
                     }
@@ -104,7 +104,7 @@ else
 
 
 <h3>Parent components</h3>
-@if (!Model.Components.Any(c => c.Depandancy == Enums.Dependancy.Parent))
+@if (!Model.Components.Any(c => c.Dependancy == Enums.Dependancy.Parent))
 {
     <p>We don't have any parent components yet.</p>
 }
@@ -122,7 +122,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var component in Model.Components.Where(c => c.Depandancy == Enums.Dependancy.Parent).ToList())
+            @foreach (var component in Model.Components.Where(c => c.Dependancy == Enums.Dependancy.Parent).ToList())
             {
                 <tr>
                     <td>@Html.ActionLink(component.Name, "Edit", "Factory", new { id = component.Id }, null)</td>
@@ -158,7 +158,8 @@ else
 {
 
     <script>
-        $(document).ajaxStop(function(){
+
+        $(document).ajaxStop(function () {
             window.location.reload();
         });
 
@@ -180,33 +181,16 @@ else
 
         $("#IOs .js-edit").on("click", function () {
             var img = $(this);
-            
-            var Components = JSON.parse('@Html.Raw(Json.Encode(@Model.Components))');
-            var component;
-            
-            for (var i = 0; i < Components.length; i++) {
-                if (Components[i].IOId == img.attr("data-io-id")) {
-                    component = Components[i];
-                }
-            }
 
             $.ajax({
-                url: "/api/components/" + component.Id,
-                method: "PUT",
+                url: "/Factory/Approve",
+                type: 'POST',
                 data: {
-                    Id: component.Id,
-                    StandardId: $("#Component_StandardId").val(),
-                    IdIO: component.IOId,
-                    Name: component.Name,
-                    Location: component.Location,
-                    Comment: component.Comment,
-                    Depandancy: component.Depandancy,
-                    MatchStatus: component.MatchStatus,
-                    ConnectionType: component.ConnectionType,
+                    stdId: $("#Component_StandardId").val(),
+                    IOId: img.attr("data-io-id")
                 },
-                dataType: "Component",
-                success: function () {
-                    img.closest("tr").find('td.matching').remove();
+                success: function (result) {
+                    
                 }
             });
         });

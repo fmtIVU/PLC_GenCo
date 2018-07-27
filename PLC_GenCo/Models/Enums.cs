@@ -5,8 +5,39 @@ using System.Reflection;
 
 namespace PLC_GenCo.ViewModels
 {
+    interface IHeaderInfo
+    {
+        string PageName { get; set; }
+    }
+
     public static class Enums
     {
+
+        public enum DataType
+        {
+            BOOL,
+            INT,
+            REAL,
+            Other,
+        }
+
+        public enum InOut
+        {
+            Input,
+            Output,
+            ImputOutput,
+        }
+
+        public enum ParType
+        {
+            IO,
+            TODO,
+            Constant,
+            Parameter,
+            Interface,
+
+        }
+
         public enum Dependancy
         {
             Single,

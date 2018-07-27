@@ -210,8 +210,6 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\API\IOsController.cs" />
-    <Compile Include="Controllers\API\DIAlarmSetupsController.cs" />
-    <Compile Include="Controllers\API\AIAlarmSetupsController.cs" />
     <Compile Include="Controllers\API\ComponentsController.cs" />
     <Compile Include="Controllers\API\ModulesController.cs" />
     <Compile Include="Controllers\API\LocationsController.cs" />
@@ -450,13 +448,28 @@
     <Compile Include="Migrations\201807190813282_addDescriptionToStandard.Designer.cs">
       <DependentUpon>201807190813282_addDescriptionToStandard.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201807201200031_addUser.cs" />
+    <Compile Include="Migrations\201807201200031_addUser.Designer.cs">
+      <DependentUpon>201807201200031_addUser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807231038201_PRExmlDBupdateV01.cs" />
+    <Compile Include="Migrations\201807231038201_PRExmlDBupdateV01.Designer.cs">
+      <DependentUpon>201807231038201_PRExmlDBupdateV01.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807241120526_XML_DB_Major_Delete.cs" />
+    <Compile Include="Migrations\201807241120526_XML_DB_Major_Delete.Designer.cs">
+      <DependentUpon>201807241120526_XML_DB_Major_Delete.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ComponentLocation.cs" />
+    <Compile Include="Models\AlarmSetup.cs" />
+    <Compile Include="Models\Parameter.cs" />
     <Compile Include="Models\PLC.cs" />
     <Compile Include="Models\IO.cs" />
     <Compile Include="Models\Module.cs" />
     <Compile Include="Models\IOAddress.cs" />
+    <Compile Include="Models\Setup.cs" />
     <Compile Include="Models\Setups\AIAlarmSetup.cs" />
     <Compile Include="Models\Setups\DIAlarmSetup.cs" />
     <Compile Include="Models\Setups\DIPulseSetup.cs" />
@@ -470,14 +483,19 @@
     <Compile Include="Models\Routine.cs" />
     <Compile Include="Models\Task.cs" />
     <Compile Include="Models\UDT.cs" />
+    <Compile Include="Models\User.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="ViewModels\DuplicateViewModel.cs" />
     <Compile Include="ViewModels\EditIOIOListViewModel.cs" />
     <Compile Include="ViewModels\ExportViewModel.cs" />
+    <Compile Include="ViewModels\StandardFormViewModel.cs" />
+    <Compile Include="ViewModels\StandardViewModel.cs" />
+    <Compile Include="ViewModels\IndexHomeViewModel.cs" />
     <Compile Include="ViewModels\Setups\StdVlvSetupViewModel.cs" />
     <Compile Include="ViewModels\Setups\MRevSetupViewModel.cs" />
     <Compile Include="ViewModels\Setups\MotFrqSetupViewModel.cs" />
@@ -499,6 +517,7 @@
     <Compile Include="ViewModels\PLCFormViewModel.cs" />
     <Compile Include="ViewModels\ModuleFormViewModel.cs" />
     <Compile Include="ViewModels\LocationFormViewModel.cs" />
+    <Compile Include="XMLDB\XMLDatabase.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap-lumen.css" />
@@ -927,6 +946,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201807190813282_addDescriptionToStandard.resx">
       <DependentUpon>201807190813282_addDescriptionToStandard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807201200031_addUser.resx">
+      <DependentUpon>201807201200031_addUser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807231038201_PRExmlDBupdateV01.resx">
+      <DependentUpon>201807231038201_PRExmlDBupdateV01.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807241120526_XML_DB_Major_Delete.resx">
+      <DependentUpon>201807241120526_XML_DB_Major_Delete.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

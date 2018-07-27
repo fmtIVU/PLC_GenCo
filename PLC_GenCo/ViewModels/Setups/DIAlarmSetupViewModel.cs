@@ -6,7 +6,7 @@ using System.Web;
 
 namespace PLC_GenCo.ViewModels.Setups
 {
-    public class DIAlarmSetupViewModel
+    public class DIAlarmSetupViewModel : BaseViewModel
     {
         public DIAlarmSetup DIAlarmSetup { get; set; }
         public Component Component { get; set; }

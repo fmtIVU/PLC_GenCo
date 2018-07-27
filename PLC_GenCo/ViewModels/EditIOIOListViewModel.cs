@@ -6,7 +6,7 @@ using System.Web;
 
 namespace PLC_GenCo.ViewModels
 {
-    public class EditIOIOListViewModel
+    public class EditIOIOListViewModel : BaseViewModel
     {
         public IO IO { get; set; }
         public IEnumerable<ComponentLocation> IOLocations { get; set; }

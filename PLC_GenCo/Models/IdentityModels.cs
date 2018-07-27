@@ -22,20 +22,8 @@ namespace PLC_GenCo.ViewModels
 
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public DbSet<Standard> Standards { get; set; }
-        public DbSet<Component> Components { get; set; }
-        public DbSet<ComponentLocation> ComponentLocations { get; set; }
-        public DbSet<IO> IOs { get; set; }
-        public DbSet<Module> Modules { get; set; }
-        public DbSet<PLC> PLC { get; set; }
-        public DbSet<DIAlarmSetup> DIAlarms { get; set; }
-        public DbSet<DIPulseSetup> DIpulses { get; set; }
-        public DbSet<AIAlarmSetup> AIAlarms { get; set; }
-        public DbSet<MDirSetup> MDirs { get; set; }
-        public DbSet<MotFrqSetup> MotFrqs { get; set; }
-        public DbSet<MRevSetup> MRevs { get; set; }
-        public DbSet<StdVlvSetup> StdVlvs { get; set; }
         public DbSet<StandardGroup> StandardGroups { get; set; }
+        public DbSet<User> Users { get; set; }
 
 
 

@@ -1,8 +1,10 @@
-﻿using System;
+﻿using PLC_GenCo.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
+using System.Xml.Linq;
 using static PLC_GenCo.ViewModels.Enums;
 
 namespace PLC_GenCo.ViewModels
@@ -24,11 +26,14 @@ namespace PLC_GenCo.ViewModels
         [StringLength(255)]
         public string Comment { get; set; }
         
-        public Dependancy Depandancy { get; set; }
+        public Dependancy Dependancy { get; set; }
         public MatchStatus MatchStatus { get; set; }
         public ConnectionType ConnectionType { get; set; }
 
-        
+        public Setup Setup { get; set; }
+
+        public List<AlarmSetup> DIAlarms { get; set; }
+        public List<AlarmSetup> AIAlarms { get; set; }
 
     }
 }

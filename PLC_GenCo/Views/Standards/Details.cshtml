@@ -1,4 +1,4 @@
-﻿@model PLC_GenCo.ViewModels.Standard
+﻿@model PLC_GenCo.ViewModels.StandardFormViewModel
 @{
     ViewBag.Title = "Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -8,7 +8,9 @@
 //Standard details    
 *@
 <h2>Details</h2>
-<p>@Model.AOIName</p>
-<p>@Model.ConnectionType</p>
+<p>@Model.Standard.AOIName</p>
+<p>@Model.Standard.Description</p>
+<p>@Model.Standard.Group</p>
+<p>@Model.Standard.ConnectionType</p>
 
 

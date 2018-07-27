@@ -18,9 +18,9 @@ namespace PLC_GenCo.Models
         {
             Type = IOType.IO;
             IPorMBAddress = String.Empty;
-            Rack = 0;
-            Module = 0;
-            Channel = 0;    
+            Rack = default(Int32);
+            Module = default(Int32);
+            Channel = default(Int32);    
         }
 
         public IOAddress(String PLCAddress)

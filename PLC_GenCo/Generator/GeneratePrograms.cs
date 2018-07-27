@@ -434,7 +434,7 @@ namespace PLC_GenCo.Generator
             foreach (var DIAlarm in _programsInfo.DIAlarmSetups)
             {
                 //Skip if DIAlarm is owned by parent component
-                if (_programsInfo.Components.Single(c => c.Id == DIAlarm.IdComponent).Depandancy == Dependancy.Parent)
+                if (_programsInfo.Components.Single(c => c.Id == DIAlarm.IdComponent).Dependancy == Dependancy.Parent)
                     continue;
 
                 // Load owner component

@@ -105,6 +105,15 @@ textarea {
   border-left: thin solid #BDBDBD;
 }
 
+.imgApprove
+{
+    background: url("~/Resources/approve.png") no-repeat top left;
+     display: block;
+     width: 20px;
+     height: 20px;
+     text-indent: -9999px; /* hides the link text */
+}
+
 
 
 

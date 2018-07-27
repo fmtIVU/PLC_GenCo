@@ -1,5 +1,7 @@
-﻿using PLC_GenCo.Models;
+﻿using Microsoft.AspNet.Identity;
+using PLC_GenCo.Models;
 using PLC_GenCo.ViewModels;
+using PLC_GenCo.XMLDB;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -22,13 +24,19 @@ namespace PLC_GenCo.Controllers.API
         // GET /api/modules
         public IEnumerable<Module> GetModules()
         {
-            return _context.Modules.ToList();
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            return xmlDB.Modules;
         }
 
         // GET /api/module
         public IHttpActionResult GetModule(int id)
         {
-            var module = _context.Modules.SingleOrDefault(c => c.Id == id);
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            var module = xmlDB.Modules.SingleOrDefault(c => c.Id == id);
 
             if (module == null)
             {
@@ -42,13 +50,16 @@ namespace PLC_GenCo.Controllers.API
         [HttpPost]
         public IHttpActionResult CreateModule(Module module)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            _context.Modules.Add(module);
-            _context.SaveChanges();
+            xmlDB.Modules.Add(module);
+            xmlDB.Save();
 
             return Created(new Uri(Request.RequestUri + "/" + module.Id), module);
         }
@@ -56,23 +67,25 @@ namespace PLC_GenCo.Controllers.API
         [HttpPut]
         public Module UpdateModule(int id, Module module)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
             if (!ModelState.IsValid)
             {
                 throw new HttpResponseException(HttpStatusCode.BadRequest);
             }
 
-            var moduleInDb = _context.Modules.SingleOrDefault(c => c.Id == id);
+            var moduleInDb = xmlDB.Modules.SingleOrDefault(c => c.Id == id);
 
             if (moduleInDb == null)
             {
                 throw new HttpResponseException(HttpStatusCode.NotFound);
             }
 
-            moduleInDb.IOModulesType = module.IOModulesType;
             moduleInDb.Name = module.Name;
-            moduleInDb.Comments = module.Comments;
+            moduleInDb.IOModulesType = module.IOModulesType;
 
-            _context.SaveChanges();
+            xmlDB.Save();
 
             return module;
 
@@ -82,13 +95,16 @@ namespace PLC_GenCo.Controllers.API
         [HttpDelete]
         public void Delete(int id)
         {
-            var moduleInDb = _context.Modules.SingleOrDefault(c => c.Id == id);
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            var moduleInDb = xmlDB.Modules.SingleOrDefault(c => c.Id == id);
 
             if (moduleInDb == null)
                 throw new HttpResponseException(HttpStatusCode.NotFound);
 
-            _context.Modules.Remove(moduleInDb);
-            _context.SaveChanges();
+            xmlDB.Modules.Remove(moduleInDb);
+            xmlDB.Save();
 
             return;
         }

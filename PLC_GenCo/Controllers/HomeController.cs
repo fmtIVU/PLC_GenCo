@@ -1,4 +1,5 @@
-﻿using PLC_GenCo.Models;
+﻿using Microsoft.AspNet.Identity;
+using PLC_GenCo.Models;
 using PLC_GenCo.Models.Setups;
 using PLC_GenCo.ViewModels;
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Xml.Linq;
 
 namespace PLC_GenCo.Controllers
 {
@@ -26,7 +28,88 @@ namespace PLC_GenCo.Controllers
         //MAIN PAGE
         public ActionResult Index()
         {
-            return View();
+            List<String> projects;
+            var userName = User.Identity.GetUserName();
+            String pageName;
+
+            if (String.IsNullOrEmpty(userName))
+            {
+                projects = new List<String>();
+                pageName = "";
+            }
+            else
+            {
+                projects = System.IO.Directory.GetDirectories(@"C:\Users\Ivan\Desktop\OP generator PLC koda\Profiles\" + userName).ToList();
+                pageName = _context.Users.First(c => c.Name == userName).ActProject;
+            }
+
+            for (int i = 0; i < projects.Count(); i++)
+            {
+                projects[i] = projects[i].Split('\\').Last();
+            }
+
+            var viewModel = new IndexHomeViewModel
+            {
+                Projects = projects,
+                UserName = userName,
+                PageName = pageName,
+            };
+
+
+            return View(viewModel);
+        }
+
+        public ActionResult New(IndexHomeViewModel viewModel)
+        {
+            var userName = User.Identity.GetUserName();
+            System.IO.Directory.CreateDirectory(@"C:\Users\Ivan\Desktop\OP generator PLC koda\Profiles\" + userName + @"\" + viewModel.ProjectName);
+            System.IO.Directory.CreateDirectory(@"C:\Users\Ivan\Desktop\OP generator PLC koda\Profiles\" + userName + @"\" + viewModel.ProjectName + @"\Standards");
+
+            var XMLProject = new XElement("Project",
+                new XAttribute("Name", viewModel.ProjectName),
+                new XAttribute("ComponentId", "1"),
+                new XAttribute("StandardId", "1"),
+                new XAttribute("ModuleId", "1"),
+                new XAttribute("LocationId", "1"),
+                new XAttribute("IOId", "1"),
+               
+
+                new XElement("PLC"),
+                new XElement("Components"),
+                new XElement("Locations"),
+                new XElement("IOs"),
+                new XElement("Modules"),
+                new XElement("Standards")
+                );
+
+            XMLProject.Save(@"C:\Users\Ivan\Desktop\OP generator PLC koda\Profiles\" + userName + @"\" + viewModel.ProjectName + @"\" + viewModel.ProjectName + @".xml");
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        public ActionResult Delete(string name)
+        {
+            var userName = User.Identity.GetUserName();
+            System.IO.Directory.Delete(@"C:\Users\Ivan\Desktop\OP generator PLC koda\Profiles\" + userName + @"\" + name, true);
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        public ActionResult Open(string name)
+        {
+            var userName = User.Identity.GetUserName();
+            var user = _context.Users.First(c => c.Name == userName);
+            user.ActProject = name;
+            _context.SaveChanges();
+            return RedirectToAction("Index", "Home");
+        }
+        public ActionResult Close()
+        {
+            var userName = User.Identity.GetUserName();
+            var user = _context.Users.First(c => c.Name == userName);
+            user.ActProject = null;
+            _context.SaveChanges();
+            return RedirectToAction("Index", "Home");
         }
         //====================================================================================================================
         //CONTACT PAGE
@@ -37,86 +120,6 @@ namespace PLC_GenCo.Controllers
             return View();
         }
         //====================================================================================================================
-        //RESET DATABASE COMMAND
-        public ActionResult ResetDatabase()
-        {
-    
-            //Delete components
-            foreach (Component component in _context.Components.ToList())
-            {
-                _context.Components.Remove(component);
-            }
-            _context.SaveChanges();
-            //Delete IOs
-            foreach (IO io in _context.IOs.ToList())
-            {
-                _context.IOs.Remove(io);
-            }
-            _context.SaveChanges();
-            //Delete locations
-            foreach (ComponentLocation location in _context.ComponentLocations.ToList())
-            {
-                _context.ComponentLocations.Remove(location);
-            }
-            _context.SaveChanges();
-            //Delete modules
-            foreach (Module module in _context.Modules.ToList())
-            {
-                _context.Modules.Remove(module);
-            }
-            _context.SaveChanges();
-            //delete PLC
-            foreach (PLC PLC in _context.PLC.ToList())
-            {
-                _context.PLC.Remove(PLC);
-            }
-            _context.SaveChanges();
-            //======================================================================================================
-            //DELETE SETUPS
-            //Delete AI Alarm setups
-            foreach (AIAlarmSetup AIAlarm in _context.AIAlarms.ToList())
-            {
-                _context.AIAlarms.Remove(AIAlarm);
-            }
-            _context.SaveChanges();
-            //Delete DI Alarm setups
-            foreach (DIAlarmSetup DIAlarm in _context.DIAlarms.ToList())
-            {
-                _context.DIAlarms.Remove(DIAlarm);
-            }
-            _context.SaveChanges();
-            //Delete DI pulse setups
-            foreach (DIPulseSetup DIPulse in _context.DIpulses.ToList())
-            {
-                _context.DIpulses.Remove(DIPulse);
-            }
-            _context.SaveChanges();
-            //Delete motor single direction setups
-            foreach (MDirSetup MDir in _context.MDirs.ToList())
-            {
-                _context.MDirs.Remove(MDir);
-            }
-            _context.SaveChanges();
-            //Delete motor two direction setups
-            foreach (MRevSetup MRev in _context.MRevs.ToList())
-            {
-                _context.MRevs.Remove(MRev);
-            }
-            _context.SaveChanges();
-            //Delete motor with frequencyconverter setups
-            foreach (MotFrqSetup MotFrq in _context.MotFrqs.ToList())
-            {
-                _context.MotFrqs.Remove(MotFrq);
-            }
-            _context.SaveChanges();
-            //Delete mstandard valve setups
-            foreach (StdVlvSetup StdVlv in _context.StdVlvs.ToList())
-            {
-                _context.StdVlvs.Remove(StdVlv);
-            }
-            _context.SaveChanges();
-
-            return Content("Done!");
-        }
+       
     }
 }

@@ -1,5 +1,7 @@
-﻿using PLC_GenCo.Models;
+﻿using Microsoft.AspNet.Identity;
+using PLC_GenCo.Models;
 using PLC_GenCo.ViewModels;
+using PLC_GenCo.XMLDB;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity.Validation;
@@ -27,13 +29,27 @@ namespace PLC_GenCo.Controllers
         //MAIN PAGE
         public ActionResult Index()
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            String pageName;
+
+            if (String.IsNullOrEmpty(userName))
+            {
+                pageName = "";
+            }
+            else
+            {
+                pageName = _context.Users.First(c => c.Name == userName).ActProject;
+            }
 
             var viewModel = new IOListViewModel
             {
-                IOs = _context.IOs.ToList(),
-                Components = _context.Components.ToList(),
-                Standards = _context.Standards.ToList()
-
+                IOs = xmlDB.IOs,
+                Components = xmlDB.Components,
+                Standards = xmlDB.Standards,
+                PageName = pageName
+                
             };
 
             return View(viewModel);
@@ -42,8 +58,21 @@ namespace PLC_GenCo.Controllers
         //Call form add/edit io
         public ActionResult IOForm(int id)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
 
-            var io = _context.IOs.SingleOrDefault(c => c.Id == id);
+            String pageName;
+
+            if (String.IsNullOrEmpty(userName))
+            {
+                pageName = "";
+            }
+            else
+            {
+                pageName = _context.Users.First(c => c.Name == userName).ActProject;
+            }
+
+            var io = xmlDB.IOs.SingleOrDefault(c => c.Id == id);
 
             if (io == null)
                 return HttpNotFound();
@@ -51,8 +80,9 @@ namespace PLC_GenCo.Controllers
             var viewModel = new EditIOIOListViewModel
             {
                 IO = io,
-                IOLocations = _context.ComponentLocations.ToList(),
-                Parents = _context.Components.Where(c => c.Depandancy == Enums.Dependancy.Parent)
+                IOLocations = xmlDB.Locations,
+                Parents = xmlDB.Components.Where(c => c.Dependancy == Enums.Dependancy.Parent),
+                PageName = pageName
             };
 
             return View("IOForm", viewModel);
@@ -61,26 +91,42 @@ namespace PLC_GenCo.Controllers
         [HttpPost]
         public ActionResult Save(IO io)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            //Load page name
+            String pageName;
+            if (String.IsNullOrEmpty(userName))
+            {
+                pageName = "";
+            }
+            else
+            {
+                pageName = _context.Users.First(c => c.Name == userName).ActProject;
+            }
+
             if (!ModelState.IsValid)
             {
 
                 var viewModel = new EditIOIOListViewModel
                 {
                     IO = io,
-                    IOLocations = _context.ComponentLocations.ToList(),
-                    Parents = _context.Components.Where(c => c.Depandancy == Enums.Dependancy.Parent)
+                    IOLocations = xmlDB.Locations.ToList(),
+                    Parents = xmlDB.Components.Where(c => c.Dependancy == Enums.Dependancy.Parent),
+                    PageName = pageName
                 };
 
                 return View("IOForm", viewModel);
 
             }
+
             //Component created by user -> set to match
             io.MatchStatus = Enums.MatchStatus.Match;
 
-            if (String.IsNullOrEmpty(io.ParentName))
+            if (String.IsNullOrWhiteSpace(io.ParentName) || String.IsNullOrEmpty(io.ParentName))
             {
                 // UPDATE/ADD Single IOs Component
-                var componentInDb = _context.Components.SingleOrDefault(c => c.IOId == io.Id);
+                var componentInDb = xmlDB.Components.SingleOrDefault(c => c.IOId == io.Id);
 
                 if (componentInDb == null)
                 {
@@ -91,13 +137,12 @@ namespace PLC_GenCo.Controllers
                     component.Name = io.Name;
                     component.Comment = io.Comment;
                     component.Location = io.Location;
-                    component.Depandancy = Enums.Dependancy.Single;
+                    component.Dependancy = Enums.Dependancy.Single;
 
                     component.MatchStatus = Enums.MatchStatus.No_Match;
 
 
-                    _context.Components.Add(component);
-                    _context.SaveChanges();
+                    xmlDB.Components.Add(component);
                 }
                 else
                 {
@@ -109,7 +154,7 @@ namespace PLC_GenCo.Controllers
             }else
             {
                 // Update/Add parent component
-                var componentInDb = _context.Components.SingleOrDefault(c => c.Name == io.ParentName);
+                var componentInDb = xmlDB.Components.SingleOrDefault(c => c.Name == io.ParentName);
 
                 if (componentInDb == null)
                 {
@@ -120,24 +165,24 @@ namespace PLC_GenCo.Controllers
                     component.Name = io.Name;
                     component.Comment = io.Comment;
                     component.Location = io.Location;
-                    component.Depandancy = Enums.Dependancy.Parent;
+                    component.Dependancy = Enums.Dependancy.Parent;
 
                     component.MatchStatus = Enums.MatchStatus.No_Match;
 
 
-                    _context.Components.Add(component);
-                    _context.SaveChanges();
+                    xmlDB.Components.Add(component);
                 }
 
             }
-            
+
+            xmlDB.Save();
 
             //UPDATE/ADD IO 
-            var IOInDb = _context.IOs.SingleOrDefault(c => c.Id == io.Id);
+            var IOInDb = xmlDB.IOs.SingleOrDefault(c => c.Id == io.Id);
 
             if (IOInDb == null)
             {
-                _context.IOs.Add(io);
+                xmlDB.IOs.Add(io);
             }
             else
             {
@@ -150,29 +195,29 @@ namespace PLC_GenCo.Controllers
                 IOInDb.MatchStatus = io.MatchStatus;
 
             }
-            _context.SaveChanges();
+            xmlDB.Save();
 
             //UPDATE IDs
-            var ioIDUpdate = _context.IOs.First(c => c.Name == io.Name);
+            var ioIDUpdate = xmlDB.IOs.First(c => c.Name == io.Name);
             var ComponentIDUpdate = new Component();
 
             // Search for component when it is single/parent
             if (String.IsNullOrEmpty(io.ParentName))
             {
-                ComponentIDUpdate = _context.Components.First(c => c.Name == io.Name);
+                ComponentIDUpdate = xmlDB.Components.First(c => c.Name == io.Name);
                 //Update single components IO ID
                 ComponentIDUpdate.IOId = ioIDUpdate.Id;
             }else
             {
-                ComponentIDUpdate = _context.Components.First(c => c.Name == io.ParentName);
+                ComponentIDUpdate = xmlDB.Components.First(c => c.Name == io.ParentName);
                 //Parent component has on IO ID because they are multiple
             }
             
 
             ioIDUpdate.ComponentId = ComponentIDUpdate.Id;
-            
 
-            _context.SaveChanges();
+
+            xmlDB.Save();
 
             return RedirectToAction("Index", "IOList");
         }

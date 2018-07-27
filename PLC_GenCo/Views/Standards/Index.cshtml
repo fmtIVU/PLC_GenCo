@@ -1,16 +1,12 @@
-﻿@using PLC_GenCo.ViewModels
-
-@model List<PLC_GenCo.ViewModels.Standard>
+﻿@model PLC_GenCo.ViewModels.StandardViewModel
 @{
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
-    var filtered = new List<Standard>();
     
 }
 
 <h2>Standards</h2>
-@if (!Model.Any())
+@if (Model.Standards == null)
 {
     <p>We don't have any standard yet.</p>
 }
@@ -25,15 +21,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var standard in Model)
-            {
-                if (!filtered.Any(c => c.AOIName == standard.AOIName))
-                {
-                    filtered.Add(standard);
-                }
-
-            }
-            @foreach (var standard in filtered)
+            @foreach (var standard in Model.Standards)
             {
                 <tr>
                     <td>@Html.ActionLink(standard.AOIName, "Details", "Standards", new { id = standard.Id }, null)</td>
@@ -41,7 +29,7 @@ else
                     <td>
                         @{
                             String text = System.String.Empty;
-                            foreach (var connectionType in Model)
+                            foreach (var connectionType in Model.Standards)
                             {
                                 if (connectionType.AOIName == standard.AOIName)
                                 {

@@ -7,7 +7,7 @@ using System.Web;
 
 namespace PLC_GenCo.ViewModels.Setups
 {
-    public class MDirSetupViewModel
+    public class MDirSetupViewModel : BaseViewModel
     {
         public MDirSetup MDirSetup { get; set; }
         public Component Component { get; set; }

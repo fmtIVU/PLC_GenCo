@@ -1,5 +1,7 @@
-﻿using PLC_GenCo.Models;
+﻿using Microsoft.AspNet.Identity;
+using PLC_GenCo.Models;
 using PLC_GenCo.ViewModels;
+using PLC_GenCo.XMLDB;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity.Validation;
@@ -31,11 +33,26 @@ namespace PLC_GenCo.Controllers
         //MAIN PAGE
         public ActionResult Index()
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            String pageName;
+
+            if (String.IsNullOrEmpty(userName))
+            {
+                pageName = "";
+            }
+            else
+            {
+                pageName = _context.Users.First(c => c.Name == userName).ActProject;
+            }
+
             var viewModel = new HWConfViewModel
             {
-                Modules = _context.Modules.ToList(),
-                Locations = _context.ComponentLocations.ToList(),
-                PLC = _context.PLC.FirstOrDefault()
+                Modules = xmlDB.Modules,
+                Locations = xmlDB.Locations,
+                PLC = xmlDB.PLC,
+                PageName = pageName
             };
             return View(viewModel);
         }
@@ -44,7 +61,11 @@ namespace PLC_GenCo.Controllers
         [HttpPost]
         public ActionResult Index(HttpPostedFileBase file)
         {
-            var IOList = new List<IO>();
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            var ioList = new List<IO>();
+
             // Verify that the user selected a file
             if (file != null && file.ContentLength > 0)
             {
@@ -62,7 +83,7 @@ namespace PLC_GenCo.Controllers
                 //Split by lines
                 String[] CSVrows = fileAsString.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Skip(1).ToArray();
 
-
+                
                 //Each line split by ';' -- parse values to database
                 foreach (string str in CSVrows)
                 {
@@ -101,8 +122,9 @@ namespace PLC_GenCo.Controllers
                     io.ParentName = IOmembers[4];
                     io.Comment = IOmembers[5];
 
-                    _context.IOs.Add(io);
-                    _context.SaveChanges();
+
+                    //Add io
+                    ioList.Add(io);
                 }
 
 
@@ -110,6 +132,12 @@ namespace PLC_GenCo.Controllers
 
             }
 
+            foreach (var io in ioList)
+            {
+                xmlDB.IOs.Add(io);
+            }
+
+            xmlDB.Save();
             //Add locations to database
             DetectLocations();
             CreateComponents();
@@ -123,8 +151,10 @@ namespace PLC_GenCo.Controllers
         //Call location form
         public ActionResult LocationForm(int id)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
 
-            var location = _context.ComponentLocations.SingleOrDefault(c => c.Id == id);
+            var location = xmlDB.Locations.SingleOrDefault(c => c.Id == id);
 
             if (location == null)
                 return HttpNotFound();
@@ -157,25 +187,21 @@ namespace PLC_GenCo.Controllers
 
             }
 
-            if (location.Id == 1)
-            {
-                _context.ComponentLocations.Add(location);
-            }
-            else
-            {
-                var locationInDb = _context.ComponentLocations.SingleOrDefault(c => c.Id == location.Id);
-                if (locationInDb == null)
-                {
-                    _context.ComponentLocations.Add(location);
-                }
-                else
-                {
-                    locationInDb.Name = location.Name;
-                    locationInDb.Prefix = location.Prefix;
-                }
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
 
+            //Choose between add and update
+            if (location.Id == 0)
+            {
+                xmlDB.Locations.Add(location);
+            }else
+            {
+                var locationInDB = xmlDB.Locations.Single(c => c.Id == location.Id);
+                locationInDB.Name = location.Name;
+                locationInDB.Prefix = location.Prefix;
             }
-            _context.SaveChanges();
+            
+            xmlDB.Save();
 
             return RedirectToAction("Index", "HWConf");
         }
@@ -184,8 +210,10 @@ namespace PLC_GenCo.Controllers
         //Call module form
         public ActionResult ModuleForm(int id)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
 
-            var module = _context.Modules.SingleOrDefault(c => c.Id == id);
+            var module = xmlDB.Modules.SingleOrDefault(c => c.Id == id);
 
             if (module == null)
                 return HttpNotFound();
@@ -218,24 +246,28 @@ namespace PLC_GenCo.Controllers
 
             }
 
+            
 
-            var moduleInDb = _context.Modules.SingleOrDefault(c => c.Id == module.Id);
-            if (moduleInDb == null)
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            // Create new or update
+            if (module.Id == 0)
             {
-                
-                module.Address = _context.Modules.Count();   //TODO if controller not first---- embDI + embDO = 2 rest start with 2
-
-                _context.Modules.Add(module);
+                //new
+                module.Address = xmlDB.Modules.Count();
+                xmlDB.Modules.Add(module);
             }
             else
             {
-                moduleInDb.Name = module.Name;
-                moduleInDb.IOModulesType = module.IOModulesType;
-                moduleInDb.Comments = module.Comments;
-            }
+                //Update
+                var moduleInDB = xmlDB.Modules.Single(c => c.Id == module.Id);
+                moduleInDB.Name = module.Name;
+                moduleInDB.IOModulesType = module.IOModulesType;
 
+            }
             
-            _context.SaveChanges();
+            xmlDB.Save();
 
             return RedirectToAction("Index", "HWConf");
         }
@@ -244,7 +276,10 @@ namespace PLC_GenCo.Controllers
         //Call PLC form
         public ActionResult AddPLC()
         {
-            if (_context.PLC.Count() < 1)
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            if (xmlDB.PLC ==  null)
             {
                 return View("PLCForm");
             }
@@ -252,7 +287,7 @@ namespace PLC_GenCo.Controllers
             {
                 var viewModel = new PLCFormViewModel
                 {
-                    PLC = _context.PLC.FirstOrDefault()
+                    PLC = xmlDB.PLC
                 };
 
                 return View("PLCForm", viewModel);
@@ -273,34 +308,23 @@ namespace PLC_GenCo.Controllers
                 return View("PLCForm", viewModel);
 
             }
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
 
-
-            var PLCInDb = _context.PLC.FirstOrDefault();
-
-            if (_context.PLC.Count() < 1)
-            {
-                _context.PLC.Add(PLC);
-            }
-            else
-            {
-                PLCInDb.Name = PLC.Name;
-                PLCInDb.ProductType = PLC.ProductType;
-                PLCInDb.Description = PLC.Description;
-            }
-
-
-            _context.SaveChanges();
+            xmlDB.PLC = PLC;
+            xmlDB.Save();
             //------------------------------------------------------------------------
             //Add embedded IO modules
 
-            if ((PLC.ProductType == Enums.ControllerType.L16ER || PLC.ProductType == Enums.ControllerType.L18ER) &&
-                _context.Modules.Where(c => ((c.IOModulesType == Enums.IOModulesType.EmbDIx16) || (c.IOModulesType == Enums.IOModulesType.EmbDOx16))).Count() == 0)
+            if (PLC.ProductType == Enums.ControllerType.L16ER || PLC.ProductType == Enums.ControllerType.L18ER && 
+                (xmlDB.Modules.Where(c => ((c.IOModulesType == Enums.IOModulesType.EmbDIx16) || (c.IOModulesType == Enums.IOModulesType.EmbDOx16))).Count() == 0))
             {
-                var embDI = new Module {
+                var embDI = new Module
+                {
                     Name = "PLC_Emb_DI",
                     IOModulesType = Enums.IOModulesType.EmbDIx16,
                     Address = 1
-                    };
+                };
                 var embDO = new Module
                 {
                     Name = "PLC_Emb_DO",
@@ -308,12 +332,13 @@ namespace PLC_GenCo.Controllers
                     Address = 1
                 };
 
-                _context.Modules.Add(embDI);
-                _context.Modules.Add(embDO);
+                xmlDB.Modules.Add(embDI);
+                xmlDB.Modules.Add(embDO);
+                xmlDB.Save();
 
             }
+            
 
-            _context.SaveChanges();
 
             return RedirectToAction("Index", "HWConf");
         }
@@ -321,15 +346,16 @@ namespace PLC_GenCo.Controllers
         //ADD LOCATIONS
         private void DetectLocations()
         {
-            var locations = new List<ComponentLocation>();
-            var IOs = _context.IOs.ToList();
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
 
-            foreach (IO io in IOs)
+            foreach (IO io in xmlDB.IOs.ToList())
             {
-                if (_context.ComponentLocations.SingleOrDefault(c => c.Name == io.Location) == null && !String.IsNullOrEmpty(io.Location)) //Add location if it doesnt exist and if it is not empty or null
+                //Add location if not duplicate
+                if (xmlDB.Locations.SingleOrDefault(c => c.Name == io.Location) == null) //Add location if it doesnt exist and if it is not empty or null
                 {
-                    _context.ComponentLocations.Add(new ComponentLocation { Name = io.Location });
-                    _context.SaveChanges();
+                    xmlDB.Locations.Add(new ComponentLocation { Name = io.Location });
+                    xmlDB.Save();
                 }
             }
 
@@ -340,24 +366,25 @@ namespace PLC_GenCo.Controllers
         //Match IO to Standard
         private void CreateComponents()
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
 
-            foreach (var io in _context.IOs.ToList())
+            foreach (var io in xmlDB.IOs.ToList())
             {
 
-                if (!String.IsNullOrEmpty(io.ParentName))
+                if (!String.IsNullOrWhiteSpace(io.ParentName))
                 {
                     //IO is part of parent component
                     io.MatchStatus = Enums.MatchStatus.Check;
 
                     //If parent component doesnt exist create it
-                    if (!_context.Components.Any(c => c.Name == io.ParentName))
+                    if (!xmlDB.Components.Any(c => c.Name == io.ParentName))
                     {
                         var component = new Component();
-                        component.IOId = io.Id;
                         component.Name = io.ParentName;
                         component.Comment = io.Comment;
                         component.Location = io.Location;
-                        component.Depandancy = Enums.Dependancy.Parent;
+                        component.Dependancy = Enums.Dependancy.Parent;
 
                         component.MatchStatus = Enums.MatchStatus.No_Match;
 
@@ -370,37 +397,18 @@ namespace PLC_GenCo.Controllers
                             component.ConnectionType = Enums.ConnectionType.ETH;
                         }
 
-
-                        try
-                        {
-                            _context.Components.Add(component);
-                            _context.SaveChanges();
-                        }
-                        catch (DbEntityValidationException dbEx)
-                        {
-                            foreach (var validationErrors in dbEx.EntityValidationErrors)
-                            {
-                                foreach (var validationError in validationErrors.ValidationErrors)
-                                {
-                                    Trace.TraceInformation("Property: {0} Error: {1}", validationError.PropertyName, validationError.ErrorMessage);
-                                }
-                            }
-
-                        }
-
+                        xmlDB.Components.Add(component);
 
                     }else
                     {
                         //if it exist check connection type - if any child IO is IP(ETH) type -> switch components connection type
                         if (io.IOAddress.Type == Enums.IOType.IP)
                         {
-                            _context.Components.Single(c => c.Name == io.ParentName).ConnectionType = Enums.ConnectionType.ETH;
-                            _context.SaveChanges();
+                            var componentDB = xmlDB.Components.Single(c => c.Name == io.ParentName);
+                            componentDB.ConnectionType = Enums.ConnectionType.ETH;
                         }
                     }
 
-                    //Link IO to parent component
-                    io.ComponentId = _context.Components.Single(c => c.Name == io.ParentName).Id;
                 }
                 else
                 {
@@ -415,11 +423,11 @@ namespace PLC_GenCo.Controllers
                             componentAI.Name = io.Name;
                             componentAI.Comment = io.Comment;
                             componentAI.Location = io.Location;
-                            componentAI.Depandancy = Enums.Dependancy.Single;
+                            componentAI.Dependancy = Enums.Dependancy.Single;
                             componentAI.ConnectionType = io.ConnectionType;
 
                             //Matching
-                            var possibleStdAIAOI = _context.Standards.Where(c => c.ConnectionType == io.ConnectionType).ToList();
+                            var possibleStdAIAOI = xmlDB.Standards.Where(c => c.ConnectionType == io.ConnectionType).ToList();
 
                             switch (possibleStdAIAOI.Count())
                             {
@@ -444,8 +452,7 @@ namespace PLC_GenCo.Controllers
                                     break;
                             }
 
-                            _context.Components.Add(componentAI);
-                            _context.SaveChanges();
+                            xmlDB.Components.Add(componentAI);
 
                             break;
                         //=====================================================================================
@@ -461,11 +468,11 @@ namespace PLC_GenCo.Controllers
                             componentDI.Name = io.Name;
                             componentDI.Comment = io.Comment;
                             componentDI.Location = io.Location;
-                            componentDI.Depandancy = Enums.Dependancy.Single;
+                            componentDI.Dependancy = Enums.Dependancy.Single;
                             componentDI.ConnectionType = io.ConnectionType;
 
                             //Matching
-                            var possibleStdDIAOI = _context.Standards.Where(c => c.ConnectionType == io.ConnectionType).ToList();
+                            var possibleStdDIAOI = xmlDB.Standards.Where(c => c.ConnectionType == io.ConnectionType).ToList();
 
                             switch (possibleStdDIAOI.Count())
                             {
@@ -491,9 +498,7 @@ namespace PLC_GenCo.Controllers
                             }
 
 
-                            _context.Components.Add(componentDI);
-                            _context.SaveChanges();
-
+                            xmlDB.Components.Add(componentDI);
 
                             break;
                         //=====================================================================================
@@ -505,11 +510,11 @@ namespace PLC_GenCo.Controllers
                             componentDO.Name = io.Name;
                             componentDO.Comment = io.Comment;
                             componentDO.Location = io.Location;
-                            componentDO.Depandancy = Enums.Dependancy.Single;
+                            componentDO.Dependancy = Enums.Dependancy.Single;
                             componentDO.ConnectionType = io.ConnectionType;
 
                             //Matching
-                            var possibleStdDOAOI = _context.Standards.Where(c => c.ConnectionType == io.ConnectionType).ToList();
+                            var possibleStdDOAOI = xmlDB.Standards.Where(c => c.ConnectionType == io.ConnectionType).ToList();
 
                             switch (possibleStdDOAOI.Count())
                             {
@@ -535,8 +540,7 @@ namespace PLC_GenCo.Controllers
                             }
 
 
-                            _context.Components.Add(componentDO);
-                            _context.SaveChanges();
+                            xmlDB.Components.Add(componentDO);
 
                             break;
                         //=====================================================================================
@@ -551,14 +555,29 @@ namespace PLC_GenCo.Controllers
 
                     }
 
-                    io.ComponentId = _context.Components.First(c => c.IOId == io.Id).Id;
-                    _context.SaveChanges();
+                    
                 }
-
-
-
-
             }
+
+            xmlDB.Save();
+
+            //Fill up io.ComponentId
+            foreach (var io in xmlDB.IOs)
+            {
+                var component = xmlDB.Components.FirstOrDefault(c => c.IOId == io.Id);
+                //If component exist link with IO
+                if (component != null)
+                {
+                    io.ComponentId = component.Id;
+                }else
+                {
+                    //For child components
+                    io.ComponentId = xmlDB.Components.First(c => c.Name == io.ParentName).Id;
+                }
+            }
+
+            xmlDB.Save();
         }
+
     }
 }

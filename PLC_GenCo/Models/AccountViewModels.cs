@@ -3,19 +3,19 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PLC_GenCo.ViewModels
 {
-    public class ExternalLoginConfirmationViewModel
+    public class ExternalLoginConfirmationViewModel : BaseViewModel
     {
         [Required]
         [Display(Name = "Email")]
         public string Email { get; set; }
     }
 
-    public class ExternalLoginListViewModel
+    public class ExternalLoginListViewModel : BaseViewModel
     {
         public string ReturnUrl { get; set; }
     }
 
-    public class SendCodeViewModel
+    public class SendCodeViewModel : BaseViewModel
     {
         public string SelectedProvider { get; set; }
         public ICollection<System.Web.Mvc.SelectListItem> Providers { get; set; }
@@ -23,7 +23,7 @@ namespace PLC_GenCo.ViewModels
         public bool RememberMe { get; set; }
     }
 
-    public class VerifyCodeViewModel
+    public class VerifyCodeViewModel : BaseViewModel
     {
         [Required]
         public string Provider { get; set; }
@@ -39,14 +39,14 @@ namespace PLC_GenCo.ViewModels
         public bool RememberMe { get; set; }
     }
 
-    public class ForgotViewModel
+    public class ForgotViewModel : BaseViewModel
     {
         [Required]
         [Display(Name = "Email")]
         public string Email { get; set; }
     }
 
-    public class LoginViewModel
+    public class LoginViewModel : BaseViewModel
     {
         [Required]
         [Display(Name = "Email")]
@@ -62,7 +62,7 @@ namespace PLC_GenCo.ViewModels
         public bool RememberMe { get; set; }
     }
 
-    public class RegisterViewModel
+    public class RegisterViewModel : BaseViewModel
     {
         [Required]
         [EmailAddress]
@@ -81,7 +81,7 @@ namespace PLC_GenCo.ViewModels
         public string ConfirmPassword { get; set; }
     }
 
-    public class ResetPasswordViewModel
+    public class ResetPasswordViewModel : BaseViewModel
     {
         [Required]
         [EmailAddress]
@@ -102,7 +102,7 @@ namespace PLC_GenCo.ViewModels
         public string Code { get; set; }
     }
 
-    public class ForgotPasswordViewModel
+    public class ForgotPasswordViewModel : BaseViewModel
     {
         [Required]
         [EmailAddress]

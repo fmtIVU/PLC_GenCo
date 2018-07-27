@@ -6,7 +6,7 @@ using System.Web;
 
 namespace PLC_GenCo.ViewModels.Setups
 {
-    public class DIPulseSetupViewModel
+    public class DIPulseSetupViewModel : BaseViewModel
     {
         public DIPulseSetup DIPulseSetup { get; set; }
         public Component Component { get; set; }

@@ -1,5 +1,7 @@
-﻿using PLC_GenCo.Models;
+﻿using Microsoft.AspNet.Identity;
+using PLC_GenCo.Models;
 using PLC_GenCo.ViewModels;
+using PLC_GenCo.XMLDB;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -42,13 +44,19 @@ namespace PLC_GenCo.Controllers.API
         // GET /api/locations
         public IEnumerable<ComponentLocation> GetLocations()
         {
-            return _context.ComponentLocations.ToList();
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            return xmlDB.Locations;
         }
 
         // GET /api/location
         public IHttpActionResult GetLocation(int id)
         {
-            var location = _context.ComponentLocations.SingleOrDefault(c => c.Id == id);
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            var location = xmlDB.Locations.SingleOrDefault(c => c.Id == id);
 
             if (location == null)
             {
@@ -62,13 +70,16 @@ namespace PLC_GenCo.Controllers.API
         [HttpPost]
         public IHttpActionResult CreateLocation(ComponentLocation location)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            _context.ComponentLocations.Add(location);
-            _context.SaveChanges();
+            xmlDB.Locations.Add(location);
+            xmlDB.Save();
 
             return Created(new Uri(Request.RequestUri + "/" + location.Id), location);
         }
@@ -76,12 +87,15 @@ namespace PLC_GenCo.Controllers.API
         [HttpPut]
         public ComponentLocation UpdateLocation(int id, ComponentLocation location)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
             if (!ModelState.IsValid)
             {
                 throw new HttpResponseException(HttpStatusCode.BadRequest);
             }
 
-            var locationInDb = _context.ComponentLocations.SingleOrDefault(c => c.Id == id);
+            var locationInDb = xmlDB.Locations.SingleOrDefault(c => c.Id == id);
 
             if (locationInDb == null)
             {
@@ -91,7 +105,7 @@ namespace PLC_GenCo.Controllers.API
             locationInDb.Prefix = location.Prefix;
             locationInDb.Name = location.Name;
 
-            _context.SaveChanges();
+            xmlDB.Save();
 
             return location;
 
@@ -101,13 +115,15 @@ namespace PLC_GenCo.Controllers.API
         [HttpDelete]
         public void Delete(int id)
         {
-            var locationInDb = _context.ComponentLocations.SingleOrDefault(c => c.Id == id);
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
 
+            var locationInDb = xmlDB.Locations.SingleOrDefault(c => c.Id == id);
             if (locationInDb == null)
                 throw new HttpResponseException(HttpStatusCode.NotFound);
 
-            _context.ComponentLocations.Remove(locationInDb);
-            _context.SaveChanges();
+            xmlDB.Locations.Remove(locationInDb);
+            xmlDB.Save();
 
             return;
         }

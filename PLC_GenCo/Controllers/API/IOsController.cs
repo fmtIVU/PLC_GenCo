@@ -1,6 +1,8 @@
-﻿using PLC_GenCo.Models;
+﻿using Microsoft.AspNet.Identity;
+using PLC_GenCo.Models;
 using PLC_GenCo.Models.Setups;
 using PLC_GenCo.ViewModels;
+using PLC_GenCo.XMLDB;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,13 +23,19 @@ namespace PLC_GenCo.Controllers.API
         // GET /api/IOs
         public IEnumerable<IO> GetIOs()
         {
-            return _context.IOs.ToList();
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            return xmlDB.IOs;
         }
 
         // GET /api/IO
         public IHttpActionResult GetIO(int id)
         {
-            var IO = _context.IOs.SingleOrDefault(c => c.Id == id);
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            var IO = xmlDB.IOs.SingleOrDefault(c => c.Id == id);
 
             if (IO == null)
             {
@@ -41,13 +49,16 @@ namespace PLC_GenCo.Controllers.API
         [HttpPost]
         public IHttpActionResult CreateIO(IO IO)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            _context.IOs.Add(IO);
-            _context.SaveChanges();
+            xmlDB.IOs.Add(IO);
+            xmlDB.Save();
 
             return Created(new Uri(Request.RequestUri + "/" + IO.Id), IO);
         }
@@ -55,12 +66,15 @@ namespace PLC_GenCo.Controllers.API
         [HttpPut]
         public IO UpdateIO(int id, IO IO)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
             if (!ModelState.IsValid)
             {
                 throw new HttpResponseException(HttpStatusCode.BadRequest);
             }
 
-            var IOInDb = _context.IOs.SingleOrDefault(c => c.Id == id);
+            var IOInDb = xmlDB.IOs.SingleOrDefault(c => c.Id == id);
 
             if (IOInDb == null)
             {
@@ -76,7 +90,7 @@ namespace PLC_GenCo.Controllers.API
             IOInDb.ParentName = IO.ParentName;
             IOInDb.IOAddress = IO.IOAddress;
 
-            _context.SaveChanges();
+            xmlDB.Save();
 
             return IO;
 
@@ -86,13 +100,16 @@ namespace PLC_GenCo.Controllers.API
         [HttpDelete]
         public void DeleteIO(int id)
         {
-            var IOInDb = _context.IOs.SingleOrDefault(c => c.Id == id);
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            var IOInDb = xmlDB.IOs.SingleOrDefault(c => c.Id == id);
 
             if (IOInDb == null)
                 throw new HttpResponseException(HttpStatusCode.NotFound);
 
-            _context.IOs.Remove(IOInDb);
-            _context.SaveChanges();
+            xmlDB.IOs.Remove(IOInDb);
+            xmlDB.Save();
             return;
         }
     }

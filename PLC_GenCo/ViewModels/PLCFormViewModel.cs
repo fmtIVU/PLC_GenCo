@@ -6,7 +6,7 @@ using System.Web;
 
 namespace PLC_GenCo.ViewModels
 {
-    public class PLCFormViewModel
+    public class PLCFormViewModel : BaseViewModel
     {
         public PLC PLC { get; set; }
     }

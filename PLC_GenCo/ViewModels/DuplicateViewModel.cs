@@ -6,7 +6,7 @@ using System.Web;
 
 namespace PLC_GenCo.ViewModels
 {
-    public class DuplicateViewModel
+    public class DuplicateViewModel : BaseViewModel
     {
         public Component ComponentToCopy { get; set; }
         public List<DIAlarmSetup> DIAlarmSetups { get; set; }

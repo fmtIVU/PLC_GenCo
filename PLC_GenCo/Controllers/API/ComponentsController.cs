@@ -1,4 +1,6 @@
-﻿using PLC_GenCo.ViewModels;
+﻿using Microsoft.AspNet.Identity;
+using PLC_GenCo.ViewModels;
+using PLC_GenCo.XMLDB;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,13 +21,19 @@ namespace PLC_GenCo.Controllers.API
         // GET /api/components
         public IEnumerable<Component> GetComponents()
         {
-            return _context.Components.ToList();
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            return xmlDB.Components;
         }
 
         // GET /api/component
         public IHttpActionResult GetComponent (int id)
         {
-            var component = _context.Components.SingleOrDefault(c => c.Id == id);
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            var component = xmlDB.Components.SingleOrDefault(c => c.Id == id);
 
             if (component == null)
             {
@@ -39,13 +47,16 @@ namespace PLC_GenCo.Controllers.API
         [HttpPost]
         public IHttpActionResult CreateComponent (Component component)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            _context.Components.Add(component);
-            _context.SaveChanges();
+            xmlDB.Components.Add(component);
+            xmlDB.Save();
 
             return Created(new Uri(Request.RequestUri + "/" + component.Id), component);
         }
@@ -53,12 +64,15 @@ namespace PLC_GenCo.Controllers.API
         [HttpPut]
         public IHttpActionResult UpdateComponent(int id, Component component)
         {
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
             if (!ModelState.IsValid)
             {
                 throw new HttpResponseException(HttpStatusCode.BadRequest);
             }
 
-            var componentInDb = _context.Components.SingleOrDefault(c => c.Id ==  id);
+            var componentInDb = xmlDB.Components.SingleOrDefault(c => c.Id ==  id);
 
             if (componentInDb == null)
             {
@@ -75,20 +89,17 @@ namespace PLC_GenCo.Controllers.API
             componentInDb.Location = component.Location;
             componentInDb.StandardId = component.StandardId;
             componentInDb.ConnectionType = componentInDb.ConnectionType;
-            componentInDb.Depandancy = component.Depandancy;
+            componentInDb.Dependancy = component.Dependancy;
 
-            var io = _context.IOs.FirstOrDefault(c => c.Id == componentInDb.IOId);
+            var io = xmlDB.IOs.FirstOrDefault(c => c.Id == componentInDb.IOId);
 
             if (io != null)
             {
                 io.MatchStatus = Enums.MatchStatus.Match;
                 io.ComponentId = componentInDb.Id;
-                io.ParentName = componentInDb.Name;
             }
 
-
-            _context.SaveChanges();
-
+            xmlDB.Save();
             return Ok();
 
         }
@@ -97,13 +108,17 @@ namespace PLC_GenCo.Controllers.API
         [HttpDelete]
         public void DeleteComponent(int id)
         {
-            var componentInDb = _context.Components.SingleOrDefault(c => c.Id == id);
+            var userName = User.Identity.GetUserName();
+            var xmlDB = new XMLDatabase(userName, _context.Users.First(c => c.Name == userName).ActProject);
+
+            var componentInDb = xmlDB.Components.SingleOrDefault(c => c.Id == id);
 
             if(componentInDb == null)
                 throw new HttpResponseException(HttpStatusCode.NotFound);
 
-            _context.Components.Remove(componentInDb);
-            _context.SaveChanges();
+            xmlDB.Components.Remove(componentInDb);
+            xmlDB.Save();
+
             return;
         }
 

@@ -1,4 +1,5 @@
-﻿@{
+﻿@model PLC_GenCo.ViewModels.IndexHomeViewModel
+@{
     ViewBag.Title = "Home Page";
 }
 
@@ -6,9 +7,79 @@
     <h1>GenCo (beta)</h1>
     <p class="lead">Code generator for Rockwell programable logic controllers. </p>
 </div>
-<p align="right">
 
-    <button> @Html.ActionLink("Clear database", "ResetDatabase", "Home", null) </button>
+<h3>Projects</h3>
+@{
+    if (String.IsNullOrEmpty(Model.UserName))
+    {
+        <h4>Login first</h4>
+    }
+    else
+    {
+        if (Model.Projects.Count() == 0)
+        {
+            <h4>No projects yet!</h4>
+        }
+        else
+        {
+            <table id="projects" class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Open</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var project in Model.Projects)
+                    {
+                        <tr>
+                            <td>@project</td>
+                            <td><b>@Html.ActionLink("Open", "Open", "Home", new { name = project }, null)</b></td>
+                            <td><b>@Html.ActionLink("Delete", "Delete", "Home", new { name = project }, null)</b></td>
+                        </tr>
+                        
+                    }
+                </tbody>
+            </table>
+          }
+    }
+}
+<hr class="alert alert-primary" style="background-color:lightsteelblue; height:auto" />
+@{
+    if (!String.IsNullOrEmpty(Model.UserName))
+    {
+        <h4>New project</h4>
+        using (Html.BeginForm("New", "Home"))
+        {
+            <div class="form-group">
+                @Html.LabelFor(m => m.ProjectName)
+                @Html.TextBoxFor(m => m.ProjectName, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.ProjectName)
+            </div>
+            @Html.HiddenFor(m => m.Projects)
+            @Html.HiddenFor(m => m.UserName)
+            <p></p>
 
-</p>
+            <button type="submit" class="btn btn-primary">New</button>
+        }
+    }
+}
+
+
+
+@section scripts
+{
+
+    <script>
+        $(document).ready(function () {
+            $("#projects").DataTable({
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "paging": false,
+            });
+        });
+
+    </script>
+}
+
 

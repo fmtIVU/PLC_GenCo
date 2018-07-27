@@ -7,7 +7,7 @@ using System.Web;
 
 namespace PLC_GenCo.ViewModels.Setups
 {
-    public class StdVlvSetupViewModel
+    public class StdVlvSetupViewModel : BaseViewModel
     {
         public StdVlvSetup StdVlvSetup { get; set; }
         public Component Component { get; set; }

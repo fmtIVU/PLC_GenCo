@@ -6,53 +6,219 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@{ 
+    var filteredComponentStd = Model.Standards.Where(c => c.ConnectionType == Model.Component.ConnectionType);
+}
 <h2>Component setup</h2>
 
+<div>
+    @using (Html.BeginForm("Save", "Factory", FormMethod.Post))
+    {
+        <div style="display: inline-block; width:49% " align="left" class="topalign">
+            <h3>Basic setup</h3>
+
+            <div class="form-group">
+                @Html.LabelFor(m => m.Component.Name)
+                @Html.TextBoxFor(m => m.Component.Name, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.Component.Name)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.Component.Comment)
+                @Html.TextBoxFor(m => m.Component.Comment, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.Component.Comment)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.Component.Location)
+                @Html.DropDownListFor(m => m.Component.Location, new SelectList(Model.ComponentLocations, "Name", "Name"), "Select Location", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.Component.Location)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.Component.StandardId, "Standard")
+                @Html.DropDownListFor(m => m.Component.StandardId, new SelectList(filteredComponentStd, "Id", "AOIName"), "Select standard", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.Component.StandardId)
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(m => m.Component.Dependancy)
+                @Html.EnumDropDownListFor(m => m.Component.Dependancy, "Select depandancy", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.Component.Dependancy)
+            </div>
+        </div>
 
 
-@using (Html.BeginForm("Save", "Factory"))
-{
+        <div style="display: inline-block; width:49% " align="left" class="topalign">
+            @{
+                if (Model.Component.StandardId != null && Model.Component.StandardId != 0)
+                {
+                    <h3>Standard AOI setup</h3>
+                    int idx = 0;
+                    //List IOs
+                    foreach (var parameter in Model.Component.Setup.Parameters.ToList())
+                    {
+                        if (parameter.Type != Enums.ParType.IO && parameter.Type != Enums.ParType.Parameter)
+                        {
+                            <div class="form-group" id=@idx.ToString()>
+                                <input type="hidden" name="Parameters.index" value=@idx />
+                                @Html.HiddenFor(m => m.Component.Setup.Parameters[idx])
+                            </div>
+                            idx++;
+                            continue;
+                        }
 
-    <div class="form-group">
-        @Html.LabelFor(m => m.Component.Name)
-        @Html.TextBoxFor(m => m.Component.Name, new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.Component.Name)
-    </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.Component.Comment)
-        @Html.TextBoxFor(m => m.Component.Comment, new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.Component.Comment)
-    </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.Component.Location)
-        @Html.DropDownListFor(m => m.Component.Location, new SelectList(Model.ComponentLocations, "Name", "Name"), "Select Location", new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.Component.Location)
-    </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.Component.StandardId, "Standard")
-        @Html.DropDownListFor(m => m.Component.StandardId, new SelectList(Model.Standards, "Id", "AOIName"), "Select standard", new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.Component.StandardId)
-    </div>
+                        if (parameter.DataType == Enums.DataType.BOOL)
+                        {//Bool
+                            if (parameter.Type == Enums.ParType.IO)
+                            {//Bool-IO
+                                if (parameter.Usage == Enums.InOut.Output)
+                                {//Bool-IO-Output
+                                    <div class="form-group" id=@idx.ToString()>
+                                        <input type="hidden" name="Parameters.index" value=@idx />
+                                        @Html.LabelFor(m => m.Component.Setup.Parameters[idx].Value, parameter.Name)
+                                        @Html.DropDownListFor(m => m.Component.Setup.Parameters[idx].AuxValueINT, new SelectList(Model.DOChilds, "Id", "Comment", Model.Component.Setup.Parameters[idx].AuxValueINT), "Select I/O", new { @class = "form-control" })
+                                        @Html.ValidationMessageFor(m => m.Component.Setup.Parameters[idx].Value)
+                                    </div>
+                                }
+                                else
+                                {//Bool-IO-Input inOut
+                                    <div class="form-group" id=@idx.ToString()>
+                                        <input type="hidden" name="Parameters.index" value=@idx />
+                                        @Html.LabelFor(m => m.Component.Setup.Parameters[idx].Value, parameter.Name)
+                                        @Html.DropDownListFor(m => m.Component.Setup.Parameters[idx].AuxValueINT, new SelectList(Model.DIChilds, "Id", "Comment", Model.Component.Setup.Parameters[idx].AuxValueINT), "Select I/O", new { @class = "form-control" })
+                                        @Html.ValidationMessageFor(m => m.Component.Setup.Parameters[idx].Value)
+                                    </div>
+                                }
+                            }
+                            else
+                            {//Bool-Parameter
+                                <div class="form-group" id=@idx.ToString()>
+                                    <input type="hidden" name="Parameters.index" value=@idx />
+                                    @Html.LabelFor(m => m.Component.Setup.Parameters[idx].Value, parameter.Name)
+                                    @Html.CheckBoxFor(m => m.Component.Setup.Parameters[idx].AuxValueBOOL, new { @class = "form-control" })
+                                    @Html.ValidationMessageFor(m => m.Component.Setup.Parameters[idx].Value)
+                                </div>
+                            }
+                        }
+                        else
+                        {//INT & REAL
+                            if (parameter.Type == Enums.ParType.IO)
+                            {//INT & REAL-IO
+                                if (parameter.Usage == Enums.InOut.Output)
+                                {//INT & REAL-IO - Output
+                                    <div class="form-group" id=@idx.ToString()>
+                                        <input type="hidden" name="Parameters.index" value=@idx />
+                                        @Html.LabelFor(m => m.Component.Setup.Parameters[idx].Value, parameter.Name)
+                                        @Html.DropDownListFor(m => m.Component.Setup.Parameters[idx].AuxValueINT, new SelectList(Model.AOChilds, "Id", "Comment", Model.Component.Setup.Parameters[idx].AuxValueINT), "Select I/O", new { @class = "form-control" })
+                                        @Html.ValidationMessageFor(m => m.Component.Setup.Parameters[idx].Value)
+                                    </div>
+                                }
+                                else
+                                {//INT & REAL-IO - Input & InOut
+                                    <div class="form-group" id=@idx.ToString()>
+                                        <input type="hidden" name="Parameters.index" value=@idx />
+                                        @Html.LabelFor(m => m.Component.Setup.Parameters[idx].Value, parameter.Name)
+                                        @Html.DropDownListFor(m => m.Component.Setup.Parameters[idx].AuxValueINT, new SelectList(Model.AIChilds, "Id", "Comment", Model.Component.Setup.Parameters[idx].AuxValueINT), "Select I/O", new { @class = "form-control" })
+                                        @Html.ValidationMessageFor(m => m.Component.Setup.Parameters[idx].Value)
+                                    </div>
+                                }
 
-    <div>
-        @Html.LabelFor(m => m.Component.Depandancy)
-        @Html.EnumDropDownListFor(m => m.Component.Depandancy, "Select depandancy", new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.Component.Depandancy)
-    </div>
+                            }
+                            else
+                            {//INT & REAL-Parameter
+                                <div class="form-group" id=@idx.ToString()>
+                                    <input type="hidden" name="Parameters.index" value=@idx />
+                                    @Html.LabelFor(m => m.Component.Setup.Parameters[idx].Value, parameter.Name)
+                                    @Html.TextBoxFor(m => m.Component.Setup.Parameters[idx].AuxValueFLOAT, new { @class = "form-control", type = "number", step = "0.01" })
+                                    @Html.ValidationMessageFor(m => m.Component.Setup.Parameters[idx].Value)
+                                </div>
+                            }
+                        }
+
+                        idx++;
+                    }
+
+                }
+
+            }
+
+        </div>
+
+        @Html.HiddenFor(m => m.Component.Id)
+                @Html.HiddenFor(m => m.Component.IOId)
+                @Html.HiddenFor(m => m.Component.ConnectionType)
+                @Html.HiddenFor(m => m.Component.Setup.AOIName)
+                @Html.HiddenFor(m => m.AIChilds)
+                @Html.HiddenFor(m => m.AOChilds)
+                @Html.HiddenFor(m => m.DIChilds)
+                @Html.HiddenFor(m => m.DOChilds)
+                @Html.HiddenFor(m => m.ComponentLocations)
+                @Html.HiddenFor(m => m.Standards)
+                @Html.HiddenFor(m => m.PageName)
+
+                <p></p>
+                <p align="right">
+                    <button type="submit" class="btn btn-primary">Confirm</button>
+                </p>
 
 
-    @Html.HiddenFor(m => m.Component.Id)
-    @Html.HiddenFor(m => m.Component.IOId)
-    @Html.HiddenFor(m => m.Component.ConnectionType)
-    <p></p>
+                }
 
-    <button type="submit" class="btn btn-primary">Confirm</button>
-
-}
+</div>
 <p>
-    <span style="display:inline-block; width: 20%;"></span>
     <input type="button" value="Cancel" class="btn btn-light" onclick="@("window.location.href='" + @Url.Action("Index", "IOList") + "'");" />
 </p>
+@{
+    if (Model.DIChilds.Count + Model.AIChilds.Count + Model.DOChilds.Count + Model.AOChilds.Count > 0)
+    {
+        <h3>Childs</h3>
+        <p>Create separated DI/AI alarms here</p>
+        <table id="Childs" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>IO</th>
+                    <th>Type</th>
+                    <th>Used as</th>
+                    <th>Create</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    //DI Childs
+                    foreach (var child in Model.DIChilds.ToList())
+                    {
+                        <tr>
+                            <td style="width: 45%;">@child.Comment</td>
+                            <td style="width: 10%;">@child.ConnectionType</td>
+                            <td style="width: 15%;">@Html.DropDownList("Standard", new SelectList(Model.Standards.Where(c => c.Group == "DIAlarm").ToList(), "Id", "AOIName"), new { @class = "form-control", id = "DIStandard" })</td>
+                            <td style="width: 30%;">
+                                <button data-DIAlarmSetup-id="@child.Id" class="btn-link js-addDIA">Create DI alarm</button>
+                            </td>
+                        </tr>
+                    }
+                    //AI Childs
+                    foreach (var child in Model.AIChilds.ToList())
+                    {
+                        <tr>
+                            <td style="width: 45%;">@child.Comment</td>
+                            <td style="width: 10%;">@child.ConnectionType</td>
+                            <td style="width: 15%;">@Html.DropDownList("Standard", new SelectList(Model.Standards.Where(c => c.Group == "AIAlarm").ToList(), "Id", "AOIName"), new { @class = "form-control", id = "AIStandard" })</td>
+                            <td style="width: 30%;">
+                                <button data-AIAlarmSetup-id="@child.Id" class="btn-link js-addAIA">Create AI alarm</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+
+}
+
+
+
+
+
+
+
 
 @section scripts
 {

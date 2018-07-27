@@ -6,7 +6,7 @@ using System.Web;
 
 namespace PLC_GenCo.ViewModels
 {
-    public class ExportViewModel
+    public class ExportViewModel : BaseViewModel
     {
         public PLC Controller { get; set; }
         public List<Module> Modules { get; set; }

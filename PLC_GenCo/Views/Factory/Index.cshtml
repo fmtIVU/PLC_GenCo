@@ -20,7 +20,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var component in Model.Components.Where(c => c.Depandancy == Enums.Dependancy.Single))
+            @foreach (var component in Model.Components.Where(c => c.Dependancy == Enums.Dependancy.Single))
             {
                 <tr class="min-row">
                     <td class="min-row">@Html.ActionLink(component.Name, "Edit", "Factory", new { id = component.Id }, null)</td>
@@ -48,17 +48,7 @@
                             {
                                 textStandard = "No standard";
                             }
-
-                            //Do not display link in case "No standard"
-                            if (textStandard != "No standard")
-                            {
-                                @Html.ActionLink(textStandard, "Setup", "Factory", new { id = component.Id }, null)
-                            }
-                            else
-                            {
-                                @textStandard
-                            }
-
+                            @textStandard
                         }
                     </td>
 
@@ -84,7 +74,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var component in Model.Components.Where(c => c.Depandancy == Enums.Dependancy.Parent))
+        @foreach (var component in Model.Components.Where(c => c.Dependancy == Enums.Dependancy.Parent))
         {
             <tr class="min-row">
                 <td>
@@ -115,16 +105,7 @@
                         {
                             textStandard = "No standard";
                         }
-
-                        //Do not display link if there is no standard
-                        if (textStandard != "No standard")
-                        {
-                            @Html.ActionLink(textStandard, "Setup", "Factory", new { id = component.Id }, null)
-                        }
-                        else
-                        {
                             @textStandard
-                        }
                     }
                 </td>
 
@@ -254,7 +235,7 @@
                 var text = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">';
                 text += '<tr>';
 
-
+                //These are components which share standard from same group
                 var DIAlarms = JSON.parse('@Html.Raw(Json.Encode(@Model.DIAlarms))');
                 var AIAlarms = JSON.parse('@Html.Raw(Json.Encode(@Model.AIAlarms))');
 
@@ -362,274 +343,31 @@
             return "No Setup";
         }
 
-        switch (std.AOIName)
+        foreach (var parameter in component.Setup.Parameters.ToList())
         {
-            case ("AlarmDi"):
-                var DIAlarm = Model.DIAlarms.FirstOrDefault(c => c.IdComponent == component.Id);
+            if (parameter.Type != Enums.ParType.IO && parameter.Type != Enums.ParType.Parameter)
+                continue;
+            //Add only if it is edited
+            if (parameter.Value != parameter.DefaultValue)
+            {
+                text += parameter.ShortName + ", ";
+            }
 
-                if (DIAlarm == null)
-                {
-                    text += "Missing Setup";
-                }
-                else
-                {
 
-                    if (DIAlarm.TimeDelay != null)
-                    {
-                        text += "TD, ";
-                    }
-
-                    text += @DIAlarm.InputType.ToString();
-                }
-                break;
-            case ("CNT"):
-                var DIPulse = Model.DIPulses.FirstOrDefault(c => c.IdComponent == component.Id);
-
-                if (DIPulse == null)
-                {
-                    text += "Missing Setup";
-                }
-                else
-                {
-                    if (DIPulse.PulsesPerUnit != null)
-                    {
-                        text += "PPU: " + DIPulse.PulsesPerUnit;
-                    }
-                    else
-                    {
-                        text += "Missing Setup";
-                    }
-                }
-                break;
-            case ("Analog"):
-                var AIAlarm = Model.AIAlarms.FirstOrDefault(c => c.IdComponent == component.Id);
-
-                if (AIAlarm == null)
-                {
-                    text += "Missing Setup";
-                }
-                else
-                {
-
-                    switch (AIAlarm.AICType)
-                    {
-                        case Enums.AICType.AI0420:
-                            text += "4-20, ";
-                            break;
-                        case Enums.AICType.AI0020:
-                            text += "0-20, ";
-                            break;
-                        case Enums.AICType.DIGITAL:
-                            text += "DIG, ";
-                            break;
-                        default:
-                            break;
-                    }
-
-                    if (AIAlarm.ScaleMax != null)
-                    {
-                        text += "Smax, ";
-                    }
-                    if (AIAlarm.ScaleMin != null)
-                    {
-                        text += "Smin, ";
-                    }
-                    if (AIAlarm.AlarmLL != null)
-                    {
-                        text += "LL, ";
-                    }
-                    if (AIAlarm.AlarmL != null)
-                    {
-                        text += "L, ";
-                    }
-                    if (AIAlarm.AlarmH != null)
-                    {
-                        text += "H, ";
-                    }
-                    if (AIAlarm.AlarmHH != null)
-                    {
-                        text += "HH, ";
-                    }
-                    if (AIAlarm.TimeDelay != null)
-                    {
-                        text += "TD";
-                    }
-
-                }
-                break;
-            case ("MotorDir"):
-                if (component.ConnectionType == Enums.ConnectionType.DIO)
-                {
-                    var MDir = Model.MDirs.FirstOrDefault(c => c.IdComponent == component.Id);
-
-                    if (MDir == null)
-                    {
-                        text += "Missing Setup";
-                    }
-                    else
-                    {
-
-                        if (MDir.OUTStartSignal != null)
-                        {
-                            text += "Start, ";
-                        }
-                        if (MDir.OUTResetSignal != null)
-                        {
-                            text += "Reset, ";
-                        }
-                        if (MDir.INRunningFB != null)
-                        {
-                            text += "FB, ";
-                        }
-                    }
-                }else
-                {
-                    var MotFrq = Model.MotFrqs.FirstOrDefault(c => c.IdComponent == component.Id);
-
-                    if (MotFrq == null)
-                    {
-                        text += "Missing Setup";
-                    }
-                    else
-                    {
-                        switch (MotFrq.FrqType)
-                        {
-                            case Enums.FrqType.FC202:
-                                text += "FC202, ";
-                                break;
-                            case Enums.FrqType.FC302:
-                                text += "FC302, ";
-                                break;
-                            case Enums.FrqType.FC301:
-                                text += "FC301, ";
-                                break;
-                            default:
-                                break;
-                        }
-
-                        if (MotFrq.IPAddress != null)
-                        {
-                            text += "IP, ";
-                        }
-                        if (MotFrq.NominalSpeed != null)
-                        {
-                            text += "Nom. Speed,";
-                        }
-                    }
-                }
-
-                break;
-
-            case ("MotorRev"):
-                if (component.ConnectionType == Enums.ConnectionType.DIO)
-                {
-                    var MRev = Model.MRevs.FirstOrDefault(c => c.IdComponent == component.Id);
-
-                    if (MRev == null)
-                    {
-                        text += "Missing Setup";
-                    }
-                    else
-                    {
-
-                        if (MRev.OUTStartSignalFW != null)
-                        {
-                            text += "FW, ";
-                        }
-                        if (MRev.OUTStartSignalBW != null)
-                        {
-                            text += "BW, ";
-                        }
-                        if (MRev.OUTResetSignal != null)
-                        {
-                            text += "Res, ";
-                        }
-                        if (MRev.INRunningFBFW != null)
-                        {
-                            text += "FB-FW, ";
-                        }
-                        if (MRev.INRunningFBBW != null)
-                        {
-                            text += "FB-BW, ";
-                        }
-
-                    }
-                }else
-                {
-                    var MotFrqR = Model.MotFrqs.FirstOrDefault(c => c.IdComponent == component.Id);
-
-                    if (MotFrqR == null)
-                    {
-                        text += "Missing Setup";
-                    }
-                    else
-                    {
-                        switch (MotFrqR.FrqType)
-                        {
-                            case Enums.FrqType.FC202:
-                                text += "FC202, ";
-                                break;
-                            case Enums.FrqType.FC302:
-                                text += "FC302, ";
-                                break;
-                            default:
-                                break;
-                        }
-
-                        if (MotFrqR.IPAddress != null)
-                        {
-                            text += "IP, ";
-                        }
-                        if (MotFrqR.NominalSpeed != null)
-                        {
-                            text += "Nom. Speed,";
-                        }
-
-                    }
-                }
-
-                break;
-
-            case ("ValveControl"):
-                var StdVlv = Model.StdVlvs.FirstOrDefault(c => c.IdComponent == component.Id);
-
-                if (StdVlv == null)
-                {
-                    text += "Missing Setup";
-                }
-                else
-                {
-
-                    if (StdVlv.OUTOpenSignal != null)
-                    {
-                        text += "Opn, ";
-                    }
-                    if (StdVlv.OUTCloseSignal != null)
-                    {
-                        text += "Cls, ";
-                    }
-                    if (StdVlv.INOpenedFB != null)
-                    {
-                        text += "Opn-FB, ";
-                    }
-                    if (StdVlv.INClosedFB != null)
-                    {
-                        text += "Cls-FB, ";
-                    }
-                    if (StdVlv.OUTResetSignal != null)
-                    {
-                        text += "Res";
-                    }
-
-                }
-                break;
-            default:
-                text += "No Setup";
-                break;
         }
 
+        //Cut ", " if any short name exists
+        if (text.Length > 2)
+        {
+            text = text.Substring(0, text.Length - 2);
+        }
 
-        return(text);
+        if (String.IsNullOrEmpty(text))
+        {
+            text = "Missing Setup";
+        }
+
+        return text;
     }
 
 }
